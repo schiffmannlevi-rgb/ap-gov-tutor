@@ -66,7 +66,7 @@ function stripCodeFences(s: string) {
   return s.replace(/```json\s*/gi, "").replace(/```/g, "").trim();
 }
 
-function safeParseJsonObject(text: string): any | null {
+function safeParseJson(text: string): any | null {
   const t = stripCodeFences(text);
 
   try {
@@ -99,12 +99,12 @@ function isValidMcq(q: any) {
   );
 }
 
-function isValidFrq(f: any) {
+function isValidFrq(q: any) {
   return (
-    f &&
-    typeof f.unit === "string" &&
-    typeof f.type === "string" &&
-    typeof f.prompt === "string"
+    q &&
+    typeof q.unit === "string" &&
+    typeof q.type === "string" &&
+    typeof q.prompt === "string"
   );
 }
 
@@ -212,31 +212,40 @@ Rules:
       );
     }
 
-    const parsed = safeParseJsonObject(outputText) as MiniSection | null;
+    const parsed = safeParseJson(outputText);
 
-    if (!parsed) {
-      return NextResponse.json(
-        { error: "Could not parse JSON", outputText },
-        { status: 500 }
-      );
-    }
-
-    if (
-      !parsed.scope ||
-      !Array.isArray(parsed.mcqs) ||
-      !Array.isArray(parsed.frqs) ||
-      parsed.mcqs.length !== 13 ||
-      parsed.frqs.length !== 2 ||
-      !parsed.mcqs.every(isValidMcq) ||
-      !parsed.frqs.every(isValidFrq)
-    ) {
+    if (!parsed || !Array.isArray(parsed.mcqs) || !Array.isArray(parsed.frqs)) {
       return NextResponse.json(
         { error: "Invalid mini section format returned", parsed },
         { status: 500 }
       );
     }
 
-    return NextResponse.json(parsed);
+    parsed.mcqs = parsed.mcqs.filter(isValidMcq);
+    parsed.frqs = parsed.frqs.filter(isValidFrq);
+
+    if (parsed.mcqs.length > 13) parsed.mcqs = parsed.mcqs.slice(0, 13);
+    if (parsed.frqs.length > 2) parsed.frqs = parsed.frqs.slice(0, 2);
+
+    if (parsed.mcqs.length < 13 || parsed.frqs.length < 2) {
+      return NextResponse.json(
+        {
+          error: "Invalid mini section format returned",
+          details: {
+            mcqCount: parsed.mcqs.length,
+            frqCount: parsed.frqs.length,
+            parsed,
+          },
+        },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      scope: parsed.scope || "AP Gov",
+      mcqs: parsed.mcqs,
+      frqs: parsed.frqs,
+    } as MiniSection);
   } catch (e: any) {
     return NextResponse.json(
       { error: "Server error", details: String(e?.message ?? e) },
