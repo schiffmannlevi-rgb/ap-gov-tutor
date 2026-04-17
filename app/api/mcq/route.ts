@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 
 type Mcq = {
+  subject?: string;
   unit: string;
   prompt: string;
   choices: { A: string; B: string; C: string; D: string };
@@ -72,24 +73,11 @@ function safeParseJsonObject(text: string): any | null {
   return null;
 }
 
-function isValidQuestion(q: any) {
-  return (
-    q &&
-    typeof q.unit === "string" &&
-    typeof q.prompt === "string" &&
-    q.choices &&
-    typeof q.choices.A === "string" &&
-    typeof q.choices.B === "string" &&
-    typeof q.choices.C === "string" &&
-    typeof q.choices.D === "string" &&
-    ["A", "B", "C", "D"].includes(q.answer) &&
-    typeof q.explanation === "string"
-  );
-}
-
 export async function POST(req: Request) {
   try {
-    const { unit } = (await req.json()) as { unit?: string };
+    const body = (await req.json()) as { unit?: string; subject?: string };
+    const unit = body.unit ?? "1";
+    const subject = body.subject ?? "gov";
 
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
@@ -99,64 +87,83 @@ export async function POST(req: Request) {
       );
     }
 
-    const system = `
-You are an AP U.S. Government & Politics exam question writer.
+    let system = "";
 
-Generate EXACTLY FIVE high-quality AP-style multiple-choice questions.
+    if (subject === "micro") {
+      system = `
+You are an AP Microeconomics exam question writer.
 
-The questions MUST:
-- Be realistic for an AP Government and Politics exam
-- Be application-based, not just vocabulary definitions
-- Include short scenarios, institutional examples, political situations, or constitutional contexts
-- Test reasoning and conceptual understanding
-- Focus on major AP Gov content such as:
-  - federalism
-  - separation of powers
-  - checks and balances
-  - Congress, presidency, bureaucracy, courts
-  - civil liberties and civil rights
-  - political ideology and public opinion
-  - elections, participation, parties, and interest groups
-  - foundational documents and landmark Supreme Court cases
+Generate EXACTLY ONE high-quality AP Microeconomics multiple-choice question.
 
-Choices must:
-- Be plausible
-- Be similar in length and tone
-- Include realistic misconceptions as distractors
-- Have exactly ONE clearly correct answer
+Requirements:
+- Must be application-based, not just a definition
+- Use realistic economic scenarios
+- Test reasoning, incentives, costs, revenue, profit, market structure, policy effects, or elasticity
+- Make it feel like a real AP Micro question
 
-Each explanation must:
-- Explain why the correct answer is right
-- Briefly explain why at least one tempting distractor is wrong
-- Sound like an AP Gov tutor, not a robot
+Topics may include:
+- supply and demand
+- elasticity
+- costs and production
+- revenue and profit
+- perfect competition
+- monopoly / oligopoly / monopolistic competition
+- factor markets
+- externalities and government policy
 
 Return ONLY a valid JSON OBJECT with this EXACT structure:
 {
-  "questions": [
-    {
-      "unit": "string",
-      "prompt": "string",
-      "choices": {
-        "A": "string",
-        "B": "string",
-        "C": "string",
-        "D": "string"
-      },
-      "answer": "A|B|C|D",
-      "explanation": "string"
-    }
-  ]
+  "subject": "micro",
+  "unit": "${unit}",
+  "prompt": "string",
+  "choices": {
+    "A": "string",
+    "B": "string",
+    "C": "string",
+    "D": "string"
+  },
+  "answer": "A|B|C|D",
+  "explanation": "string"
 }
 
 Rules:
-- There must be EXACTLY 5 questions
-- Prompt should be 1–3 sentences each
 - Do NOT use markdown
 - Do NOT include extra text
 - JSON ONLY
 `.trim();
+    } else {
+      system = `
+You are an AP U.S. Government & Politics exam question writer.
 
-    const user = `Create five challenging AP Gov multiple-choice questions for Unit ${unit ?? "1"}. Make them feel like real exam questions, not basic class quizzes.`;
+Generate EXACTLY ONE high-quality AP Gov multiple-choice question.
+
+Return ONLY a valid JSON OBJECT with this EXACT structure:
+{
+  "subject": "gov",
+  "unit": "${unit}",
+  "prompt": "string",
+  "choices": {
+    "A": "string",
+    "B": "string",
+    "C": "string",
+    "D": "string"
+  },
+  "answer": "A|B|C|D",
+  "explanation": "string"
+}
+
+Rules:
+- Make it application-based
+- Do NOT use markdown
+- Do NOT include extra text
+- JSON ONLY
+`.trim();
+    }
+
+    const user =
+      subject === "micro"
+        ? `Create one challenging AP Microeconomics multiple-choice question for unit ${unit}.`
+        : `Create one challenging AP Gov multiple-choice question for unit ${unit}.`;
 
     const r = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
@@ -176,7 +183,7 @@ Rules:
         reasoning: {
           effort: "low",
         },
-        max_output_tokens: 4000,
+        max_output_tokens: 2000,
       }),
     });
 
@@ -198,18 +205,24 @@ Rules:
       );
     }
 
-    const parsed = safeParseJsonObject(outputText) as
-      | { questions?: Mcq[] }
-      | null;
+    const parsed = safeParseJsonObject(outputText) as Mcq | null;
 
-    if (!parsed || !Array.isArray(parsed.questions)) {
+    if (!parsed) {
       return NextResponse.json(
-        { error: "Could not parse questions JSON", outputText },
+        { error: "Could not parse JSON", outputText },
         { status: 500 }
       );
     }
 
-    if (parsed.questions.length !== 5 || !parsed.questions.every(isValidQuestion)) {
+    if (
+      !parsed.prompt ||
+      !parsed.choices?.A ||
+      !parsed.choices?.B ||
+      !parsed.choices?.C ||
+      !parsed.choices?.D ||
+      !["A", "B", "C", "D"].includes(parsed.answer) ||
+      !parsed.explanation
+    ) {
       return NextResponse.json(
         { error: "Invalid MCQ format returned", parsed },
         { status: 500 }
