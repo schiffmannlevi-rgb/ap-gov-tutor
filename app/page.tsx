@@ -19,7 +19,7 @@ export default function HomePage() {
         </div>
 
         <h1 style={{ fontSize: 48, margin: "10px 0 10px", fontWeight: 900 }}>
-          AP Study Hub
+          Levi's AP Study Hub
         </h1>
 
         <p style={{ color: "#e5e5e5", maxWidth: 780, lineHeight: 1.55, fontSize: 18 }}>
