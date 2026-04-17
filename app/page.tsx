@@ -19,13 +19,20 @@ export default function HomePage() {
         </div>
 
         <h1 style={{ fontSize: 48, margin: "10px 0 10px", fontWeight: 900 }}>
-          Levi's AP Study Hub
+          AP Study Hub
         </h1>
 
-        <p style={{ color: "#e5e5e5", maxWidth: 780, lineHeight: 1.55, fontSize: 18 }}>
-          Practice multiple-choice questions, generate and grade FRQs, and run timed
-          mini sections across your AP classes. AP Government is fully built, and more
-          subjects are being added.
+        <p
+          style={{
+            color: "#e5e5e5",
+            maxWidth: 780,
+            lineHeight: 1.55,
+            fontSize: 18,
+          }}
+        >
+          Practice multiple-choice questions, generate and grade FRQs, and run
+          timed mini sections across your AP classes. AP Government is fully
+          built, and more subjects are being added.
         </p>
       </header>
 
@@ -50,24 +57,27 @@ export default function HomePage() {
           <SubjectCard
             title="AP U.S. Government"
             desc="MCQ practice, FRQ grading, and timed mini sections."
-            href="/"
+            href="/gov"
             pill="Live Now"
             sublinks={[
+              { label: "Gov Home", href: "/gov" },
               { label: "FRQ Studio", href: "/frq" },
               { label: "Practice MCQs", href: "/practice" },
               { label: "Timed Mini Section", href: "/mini-section" },
-              { label: "Diagnostic", href: "/diagnostic" },
             ]}
+          />
+
+          <SubjectCard
+            title="AP Microeconomics"
+            desc="Graphs, FRQs, MCQs, and targeted review by unit."
+            href="/micro"
+            pill="New"
+            sublinks={[{ label: "Micro Home", href: "/micro" }]}
           />
 
           <ComingSoonCard
             title="AP Statistics"
             desc="MCQs, FRQs, concept review, and timed practice sets."
-          />
-
-          <ComingSoonCard
-            title="AP Microeconomics"
-            desc="Graphs, FRQs, MCQs, and targeted review by unit."
           />
 
           <ComingSoonCard
@@ -78,47 +88,6 @@ export default function HomePage() {
           <ComingSoonCard
             title="AP Environmental Science"
             desc="Unit review, MCQs, FRQs, and applied scenario practice."
-          />
-        </div>
-      </section>
-
-      <section style={{ marginTop: 36 }}>
-        <div
-          style={{
-            fontSize: 22,
-            fontWeight: 900,
-            marginBottom: 14,
-          }}
-        >
-          Government Tools
-        </div>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-            gap: 16,
-          }}
-        >
-          <ToolCard
-            title="FRQ Studio"
-            desc="Paste a prompt and your response to get AI grading and feedback."
-            href="/frq"
-          />
-          <ToolCard
-            title="Practice MCQs"
-            desc="Generate AP-style multiple-choice sets by unit."
-            href="/practice"
-          />
-          <ToolCard
-            title="Timed Mini Section"
-            desc="Sprint through 13 MCQs and 2 FRQs with a 6-minute timer."
-            href="/mini-section"
-          />
-          <ToolCard
-            title="Diagnostic"
-            desc="Quick review page for finding weak spots."
-            href="/diagnostic"
           />
         </div>
       </section>
@@ -171,7 +140,9 @@ function SubjectCard({
         </div>
 
         <div style={{ fontSize: 24, fontWeight: 900 }}>{title}</div>
-        <div style={{ marginTop: 8, color: "#e5e5e5", lineHeight: 1.5 }}>{desc}</div>
+        <div style={{ marginTop: 8, color: "#e5e5e5", lineHeight: 1.5 }}>
+          {desc}
+        </div>
       </Link>
 
       <div style={{ marginTop: 16, display: "grid", gap: 8 }}>
@@ -229,36 +200,9 @@ function ComingSoonCard({
       </div>
 
       <div style={{ fontSize: 24, fontWeight: 900 }}>{title}</div>
-      <div style={{ marginTop: 8, color: "#e5e5e5", lineHeight: 1.5 }}>{desc}</div>
+      <div style={{ marginTop: 8, color: "#e5e5e5", lineHeight: 1.5 }}>
+        {desc}
+      </div>
     </div>
-  );
-}
-
-function ToolCard({
-  title,
-  desc,
-  href,
-}: {
-  title: string;
-  desc: string;
-  href: string;
-}) {
-  return (
-    <Link
-      href={href}
-      style={{
-        textDecoration: "none",
-        color: "#ffffff",
-        border: "2px solid #ffffff",
-        borderRadius: 18,
-        padding: 18,
-        display: "block",
-        background: "#000000",
-      }}
-    >
-      <div style={{ fontSize: 22, fontWeight: 900 }}>{title}</div>
-      <div style={{ marginTop: 8, color: "#e5e5e5", lineHeight: 1.5 }}>{desc}</div>
-      <div style={{ marginTop: 14, fontWeight: 800 }}>Open →</div>
-    </Link>
   );
 }
