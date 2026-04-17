@@ -59,12 +59,7 @@ export default function HomePage() {
             desc="MCQ practice, FRQ grading, and timed mini sections."
             href="/gov"
             pill="Live Now"
-            sublinks={[
-              { label: "Gov Home", href: "/gov" },
-              { label: "FRQ Studio", href: "/frq" },
-              { label: "Practice MCQs", href: "/practice" },
-              { label: "Timed Mini Section", href: "/mini-section" },
-            ]}
+            sublinks={[{ label: "Enter →", href: "/gov" }]}
           />
 
           <SubjectCard
@@ -72,7 +67,7 @@ export default function HomePage() {
             desc="Graphs, FRQs, MCQs, and targeted review by unit."
             href="/micro"
             pill="New"
-            sublinks={[{ label: "Micro Home", href: "/micro" }]}
+            sublinks={[{ label: "Enter →", href: "/micro" }]}
           />
 
           <ComingSoonCard
@@ -160,7 +155,7 @@ function SubjectCard({
               fontWeight: 700,
             }}
           >
-            {link.label} →
+            {link.label}
           </Link>
         ))}
       </div>
