@@ -151,24 +151,6 @@ export default function GovPracticePage() {
           >
             {loading ? "Generating..." : "Generate 5 Questions"}
           </button>
-
-          {questions.length > 0 && !checked && (
-            <button
-              onClick={checkAll}
-              disabled={answeredCount !== questions.length}
-              style={{
-                padding: "10px 16px",
-                borderRadius: 10,
-                border: "1px solid #fff",
-                background: answeredCount === questions.length ? "#fff" : "#333",
-                color: answeredCount === questions.length ? "#000" : "#bbb",
-                fontWeight: 800,
-                cursor: answeredCount === questions.length ? "pointer" : "not-allowed",
-              }}
-            >
-              Check All Answers
-            </button>
-          )}
         </div>
 
         {err && (
@@ -281,6 +263,25 @@ export default function GovPracticePage() {
             </div>
           );
         })}
+
+        {questions.length > 0 && !checked && (
+          <button
+            onClick={checkAll}
+            disabled={answeredCount !== questions.length}
+            style={{
+              marginTop: 24,
+              padding: "12px 18px",
+              borderRadius: 12,
+              border: "1px solid #fff",
+              background: answeredCount === questions.length ? "#fff" : "#333",
+              color: answeredCount === questions.length ? "#000" : "#bbb",
+              fontWeight: 900,
+              cursor: answeredCount === questions.length ? "pointer" : "not-allowed",
+            }}
+          >
+            Submit Answers
+          </button>
+        )}
       </div>
     </main>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 type Mcq = {
   subject?: string;
@@ -26,58 +26,56 @@ export default function MicroPracticePage() {
   const [unit, setUnit] = useState("any");
   const [questions, setQuestions] = useState<Mcq[]>([]);
   const [selected, setSelected] = useState<Record<number, "A" | "B" | "C" | "D" | null>>({});
-  const [submitted, setSubmitted] = useState(false);
+  const [checked, setChecked] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+
+  const answeredCount = useMemo(
+    () => Object.values(selected).filter(Boolean).length,
+    [selected]
+  );
+
+  const score = checked
+    ? questions.reduce((sum, q, i) => sum + (selected[i] === q.answer ? 1 : 0), 0)
+    : 0;
 
   async function generate() {
     setLoading(true);
+    setErr(null);
+    setChecked(false);
     setSelected({});
-    setSubmitted(false);
-    setError("");
     setQuestions([]);
 
     try {
       const res = await fetch("/api/mcq", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          subject: "micro",
-          unit,
-          count: 5,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subject: "micro", unit, count: 5 }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data?.error || "Failed to generate questions");
+        setErr(data?.error || "Failed to generate questions");
         return;
       }
 
       setQuestions(data.questions || []);
     } catch (e: any) {
-      setError(String(e?.message ?? e));
+      setErr(String(e?.message ?? e));
     } finally {
       setLoading(false);
     }
   }
 
   function choose(index: number, answer: "A" | "B" | "C" | "D") {
-    if (submitted) return;
+    if (checked) return;
     setSelected((prev) => ({ ...prev, [index]: answer }));
   }
 
-  function submitAnswers() {
-    setSubmitted(true);
+  function checkAll() {
+    setChecked(true);
   }
-
-  const answeredCount = Object.values(selected).filter(Boolean).length;
-  const score = submitted
-    ? questions.reduce((sum, q, i) => sum + (selected[i] === q.answer ? 1 : 0), 0)
-    : 0;
 
   return (
     <main
@@ -111,7 +109,8 @@ export default function MicroPracticePage() {
         </h1>
 
         <p style={{ color: "#d6d6d6", marginBottom: 24, lineHeight: 1.5 }}>
-          Generate 5 AP Micro multiple-choice questions at a time.
+          Generate AP Micro multiple-choice questions using realistic economic
+          scenarios and AP-style reasoning.
         </p>
 
         <div
@@ -157,27 +156,9 @@ export default function MicroPracticePage() {
           >
             {loading ? "Generating..." : "Generate 5 Questions"}
           </button>
-
-          {questions.length > 0 && !submitted && (
-            <button
-              onClick={submitAnswers}
-              disabled={answeredCount !== questions.length}
-              style={{
-                padding: "10px 16px",
-                borderRadius: 10,
-                border: "1px solid #fff",
-                background: answeredCount === questions.length ? "#fff" : "#333",
-                color: answeredCount === questions.length ? "#000" : "#bbb",
-                fontWeight: 800,
-                cursor: answeredCount === questions.length ? "pointer" : "not-allowed",
-              }}
-            >
-              Check All Answers
-            </button>
-          )}
         </div>
 
-        {error && (
+        {err && (
           <div
             style={{
               marginBottom: 20,
@@ -188,17 +169,17 @@ export default function MicroPracticePage() {
               color: "#ffd4d4",
             }}
           >
-            {error}
+            {err}
           </div>
         )}
 
-        {submitted && questions.length > 0 && (
+        {checked && questions.length > 0 && (
           <div
             style={{
-              marginBottom: 20,
+              marginBottom: 22,
               padding: 18,
               borderRadius: 16,
-              border: "1px solid rgba(255,255,255,0.14)",
+              border: "1px solid #333",
               background: "#0a0a0a",
               fontWeight: 900,
               fontSize: 22,
@@ -216,11 +197,11 @@ export default function MicroPracticePage() {
             <div
               key={index}
               style={{
+                marginTop: 22,
                 border: "1px solid rgba(255,255,255,0.14)",
                 borderRadius: 18,
                 padding: 20,
                 background: "rgba(255,255,255,0.04)",
-                marginBottom: 20,
               }}
             >
               <div style={{ fontSize: 18, fontWeight: 900, marginBottom: 14 }}>
@@ -234,8 +215,8 @@ export default function MicroPracticePage() {
               <div style={{ display: "grid", gap: 10 }}>
                 {(["A", "B", "C", "D"] as const).map((key) => {
                   const isSelected = selectedAnswer === key;
-                  const showCorrect = submitted && q.answer === key;
-                  const showWrong = submitted && isSelected && q.answer !== key;
+                  const showCorrect = checked && q.answer === key;
+                  const showWrong = checked && isSelected && q.answer !== key;
 
                   return (
                     <button
@@ -249,12 +230,12 @@ export default function MicroPracticePage() {
                         background: isSelected ? "#fff" : "#111",
                         color: isSelected ? "#000" : "#fff",
                         border: showCorrect
-                          ? "2px solid rgba(110,255,170,0.8)"
+                          ? "2px solid rgba(0,255,0,0.65)"
                           : showWrong
-                          ? "2px solid rgba(255,120,120,0.8)"
+                          ? "2px solid rgba(255,0,0,0.65)"
                           : "1px solid rgba(255,255,255,0.14)",
                         borderRadius: 12,
-                        cursor: submitted ? "default" : "pointer",
+                        cursor: checked ? "default" : "pointer",
                         lineHeight: 1.5,
                       }}
                     >
@@ -264,18 +245,18 @@ export default function MicroPracticePage() {
                 })}
               </div>
 
-              {submitted && (
+              {checked && (
                 <div
                   style={{
-                    marginTop: 18,
+                    marginTop: 20,
                     padding: 16,
                     borderRadius: 14,
                     border: correct
-                      ? "1px solid rgba(110,255,170,0.75)"
-                      : "1px solid rgba(255,120,120,0.75)",
+                      ? "1px solid rgba(0,255,0,0.4)"
+                      : "1px solid rgba(255,0,0,0.4)",
                     background: correct
-                      ? "rgba(110,255,170,0.08)"
-                      : "rgba(255,120,120,0.08)",
+                      ? "rgba(0,255,0,0.07)"
+                      : "rgba(255,0,0,0.07)",
                   }}
                 >
                   <strong>
@@ -287,6 +268,25 @@ export default function MicroPracticePage() {
             </div>
           );
         })}
+
+        {questions.length > 0 && !checked && (
+          <button
+            onClick={checkAll}
+            disabled={answeredCount !== questions.length}
+            style={{
+              marginTop: 24,
+              padding: "12px 18px",
+              borderRadius: 12,
+              border: "1px solid #fff",
+              background: answeredCount === questions.length ? "#fff" : "#333",
+              color: answeredCount === questions.length ? "#000" : "#bbb",
+              fontWeight: 900,
+              cursor: answeredCount === questions.length ? "pointer" : "not-allowed",
+            }}
+          >
+            Submit Answers
+          </button>
+        )}
       </div>
     </main>
   );
