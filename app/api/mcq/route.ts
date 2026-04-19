@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 
 type Mcq = {
-  subject?: string;
+  subject: "gov" | "micro";
   unit: string;
   prompt: string;
   choices: { A: string; B: string; C: string; D: string };
@@ -73,16 +73,38 @@ function safeParseJsonObject(text: string): any | null {
   return null;
 }
 
+function isValidMcq(q: any) {
+  return (
+    q &&
+    (q.subject === "gov" || q.subject === "micro") &&
+    typeof q.unit === "string" &&
+    typeof q.prompt === "string" &&
+    q.choices &&
+    typeof q.choices.A === "string" &&
+    typeof q.choices.B === "string" &&
+    typeof q.choices.C === "string" &&
+    typeof q.choices.D === "string" &&
+    ["A", "B", "C", "D"].includes(q.answer) &&
+    typeof q.explanation === "string"
+  );
+}
+
 export async function POST(req: Request) {
   try {
-    const body = (await req.json()) as { unit?: string; subject?: string };
-    const unit = body.unit ?? "1";
+    const body = (await req.json()) as {
+      unit?: string;
+      subject?: "gov" | "micro";
+      count?: number;
+    };
+
     const subject = body.subject ?? "gov";
+    const unit = body.unit ?? "any";
+    const count = Math.max(5, Math.min(Number(body.count ?? 5), 10));
 
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
-        { error: "Missing OPENAI_API_KEY in .env.local" },
+        { error: "Missing OPENAI_API_KEY in environment variables" },
         { status: 500 }
       );
     }
@@ -93,77 +115,107 @@ export async function POST(req: Request) {
       system = `
 You are an AP Microeconomics exam question writer.
 
-Generate EXACTLY ONE high-quality AP Microeconomics multiple-choice question.
+Generate EXACTLY ${count} high-quality AP Microeconomics multiple-choice questions.
 
 Requirements:
-- Must be application-based, not just a definition
+- Must be application-based, not just vocabulary definitions
 - Use realistic economic scenarios
-- Test reasoning, incentives, costs, revenue, profit, market structure, policy effects, or elasticity
-- Make it feel like a real AP Micro question
+- Test reasoning about incentives, costs, revenue, profit, elasticity, policy, market structure, or efficiency
+- Feel like real AP Micro questions, not basic quizzes
+- Use plausible distractors
 
 Topics may include:
+- basic economic concepts
 - supply and demand
 - elasticity
+- consumer and producer surplus
 - costs and production
 - revenue and profit
 - perfect competition
-- monopoly / oligopoly / monopolistic competition
+- monopoly
+- monopolistic competition
+- oligopoly
 - factor markets
-- externalities and government policy
+- externalities and government intervention
 
-Return ONLY a valid JSON OBJECT with this EXACT structure:
+Return ONLY a valid JSON object with this EXACT structure:
 {
-  "subject": "micro",
-  "unit": "${unit}",
-  "prompt": "string",
-  "choices": {
-    "A": "string",
-    "B": "string",
-    "C": "string",
-    "D": "string"
-  },
-  "answer": "A|B|C|D",
-  "explanation": "string"
+  "questions": [
+    {
+      "subject": "micro",
+      "unit": "${unit}",
+      "prompt": "string",
+      "choices": {
+        "A": "string",
+        "B": "string",
+        "C": "string",
+        "D": "string"
+      },
+      "answer": "A|B|C|D",
+      "explanation": "string"
+    }
+  ]
 }
 
 Rules:
-- Do NOT use markdown
-- Do NOT include extra text
+- Return EXACTLY ${count} questions
+- No markdown
+- No extra text
 - JSON ONLY
 `.trim();
     } else {
       system = `
 You are an AP U.S. Government & Politics exam question writer.
 
-Generate EXACTLY ONE high-quality AP Gov multiple-choice question.
+Generate EXACTLY ${count} high-quality AP Gov multiple-choice questions.
 
-Return ONLY a valid JSON OBJECT with this EXACT structure:
+Requirements:
+- Must be application-based, not just vocabulary definitions
+- Use realistic political, constitutional, institutional, or civic scenarios
+- Feel like real AP Gov MCQs
+- Use plausible distractors
+
+Topics may include:
+- constitutional foundations
+- federalism
+- separation of powers
+- checks and balances
+- Congress, presidency, bureaucracy, courts
+- civil liberties and civil rights
+- ideology and political beliefs
+- elections, parties, participation, media, and interest groups
+
+Return ONLY a valid JSON object with this EXACT structure:
 {
-  "subject": "gov",
-  "unit": "${unit}",
-  "prompt": "string",
-  "choices": {
-    "A": "string",
-    "B": "string",
-    "C": "string",
-    "D": "string"
-  },
-  "answer": "A|B|C|D",
-  "explanation": "string"
+  "questions": [
+    {
+      "subject": "gov",
+      "unit": "${unit}",
+      "prompt": "string",
+      "choices": {
+        "A": "string",
+        "B": "string",
+        "C": "string",
+        "D": "string"
+      },
+      "answer": "A|B|C|D",
+      "explanation": "string"
+    }
+  ]
 }
 
 Rules:
-- Make it application-based
-- Do NOT use markdown
-- Do NOT include extra text
+- Return EXACTLY ${count} questions
+- No markdown
+- No extra text
 - JSON ONLY
 `.trim();
     }
 
     const user =
       subject === "micro"
-        ? `Create one challenging AP Microeconomics multiple-choice question for unit ${unit}.`
-        : `Create one challenging AP Gov multiple-choice question for unit ${unit}.`;
+        ? `Create ${count} challenging AP Microeconomics multiple-choice questions for unit ${unit}.`
+        : `Create ${count} challenging AP Government multiple-choice questions for unit ${unit}.`;
 
     const r = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
@@ -183,7 +235,7 @@ Rules:
         reasoning: {
           effort: "low",
         },
-        max_output_tokens: 2000,
+        max_output_tokens: 5000,
       }),
     });
 
@@ -205,31 +257,28 @@ Rules:
       );
     }
 
-    const parsed = safeParseJsonObject(outputText) as Mcq | null;
+    const parsed = safeParseJsonObject(outputText) as { questions?: Mcq[] } | null;
 
-    if (!parsed) {
+    if (!parsed || !Array.isArray(parsed.questions)) {
       return NextResponse.json(
-        { error: "Could not parse JSON", outputText },
+        { error: "Could not parse questions JSON", outputText },
         { status: 500 }
       );
     }
 
-    if (
-      !parsed.prompt ||
-      !parsed.choices?.A ||
-      !parsed.choices?.B ||
-      !parsed.choices?.C ||
-      !parsed.choices?.D ||
-      !["A", "B", "C", "D"].includes(parsed.answer) ||
-      !parsed.explanation
-    ) {
+    const validQuestions = parsed.questions.filter(isValidMcq).slice(0, count);
+
+    if (validQuestions.length < 5) {
       return NextResponse.json(
-        { error: "Invalid MCQ format returned", parsed },
+        {
+          error: "Invalid MCQ format returned",
+          details: { questionCount: validQuestions.length, parsed },
+        },
         { status: 500 }
       );
     }
 
-    return NextResponse.json(parsed);
+    return NextResponse.json({ questions: validQuestions });
   } catch (e: any) {
     return NextResponse.json(
       { error: "Server error", details: String(e?.message ?? e) },

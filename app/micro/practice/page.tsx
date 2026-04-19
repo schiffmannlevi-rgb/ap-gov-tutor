@@ -24,18 +24,18 @@ const MICRO_UNITS = [
 
 export default function MicroPracticePage() {
   const [unit, setUnit] = useState("any");
-  const [question, setQuestion] = useState<Mcq | null>(null);
-  const [selected, setSelected] = useState<"A" | "B" | "C" | "D" | null>(null);
-  const [feedback, setFeedback] = useState("");
+  const [questions, setQuestions] = useState<Mcq[]>([]);
+  const [selected, setSelected] = useState<Record<number, "A" | "B" | "C" | "D" | null>>({});
+  const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function generateQuestion() {
+  async function generate() {
     setLoading(true);
-    setSelected(null);
-    setFeedback("");
+    setSelected({});
+    setSubmitted(false);
     setError("");
-    setQuestion(null);
+    setQuestions([]);
 
     try {
       const res = await fetch("/api/mcq", {
@@ -46,17 +46,18 @@ export default function MicroPracticePage() {
         body: JSON.stringify({
           subject: "micro",
           unit,
+          count: 5,
         }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data?.error || "Failed to generate question");
+        setError(data?.error || "Failed to generate questions");
         return;
       }
 
-      setQuestion(data);
+      setQuestions(data.questions || []);
     } catch (e: any) {
       setError(String(e?.message ?? e));
     } finally {
@@ -64,27 +65,19 @@ export default function MicroPracticePage() {
     }
   }
 
-  async function checkAnswer() {
-    if (!question || !selected) return;
-
-    try {
-      const res = await fetch("/api/mcq/grade", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          question,
-          selected,
-        }),
-      });
-
-      const data = await res.json();
-      setFeedback(data.explanation || "No explanation returned.");
-    } catch (e: any) {
-      setError(String(e?.message ?? e));
-    }
+  function choose(index: number, answer: "A" | "B" | "C" | "D") {
+    if (submitted) return;
+    setSelected((prev) => ({ ...prev, [index]: answer }));
   }
+
+  function submitAnswers() {
+    setSubmitted(true);
+  }
+
+  const answeredCount = Object.values(selected).filter(Boolean).length;
+  const score = submitted
+    ? questions.reduce((sum, q, i) => sum + (selected[i] === q.answer ? 1 : 0), 0)
+    : 0;
 
   return (
     <main
@@ -96,7 +89,7 @@ export default function MicroPracticePage() {
         fontFamily: "system-ui",
       }}
     >
-      <div style={{ maxWidth: 900, margin: "0 auto" }}>
+      <div style={{ maxWidth: 980, margin: "0 auto" }}>
         <Link
           href="/micro"
           style={{
@@ -118,8 +111,7 @@ export default function MicroPracticePage() {
         </h1>
 
         <p style={{ color: "#d6d6d6", marginBottom: 24, lineHeight: 1.5 }}>
-          Generate AP Micro multiple-choice questions using realistic economic
-          scenarios and AP-style reasoning.
+          Generate 5 AP Micro multiple-choice questions at a time.
         </p>
 
         <div
@@ -151,7 +143,7 @@ export default function MicroPracticePage() {
           </select>
 
           <button
-            onClick={generateQuestion}
+            onClick={generate}
             disabled={loading}
             style={{
               padding: "10px 16px",
@@ -163,8 +155,26 @@ export default function MicroPracticePage() {
               cursor: loading ? "not-allowed" : "pointer",
             }}
           >
-            {loading ? "Generating..." : "Generate Question"}
+            {loading ? "Generating..." : "Generate 5 Questions"}
           </button>
+
+          {questions.length > 0 && !submitted && (
+            <button
+              onClick={submitAnswers}
+              disabled={answeredCount !== questions.length}
+              style={{
+                padding: "10px 16px",
+                borderRadius: 10,
+                border: "1px solid #fff",
+                background: answeredCount === questions.length ? "#fff" : "#333",
+                color: answeredCount === questions.length ? "#000" : "#bbb",
+                fontWeight: 800,
+                cursor: answeredCount === questions.length ? "pointer" : "not-allowed",
+              }}
+            >
+              Check All Answers
+            </button>
+          )}
         </div>
 
         {error && (
@@ -182,79 +192,101 @@ export default function MicroPracticePage() {
           </div>
         )}
 
-        {question && (
+        {submitted && questions.length > 0 && (
           <div
             style={{
+              marginBottom: 20,
+              padding: 18,
+              borderRadius: 16,
               border: "1px solid rgba(255,255,255,0.14)",
-              borderRadius: 18,
-              padding: 20,
-              background: "rgba(255,255,255,0.04)",
+              background: "#0a0a0a",
+              fontWeight: 900,
+              fontSize: 22,
             }}
           >
-            <div style={{ fontSize: 18, fontWeight: 900, marginBottom: 14 }}>
-              Question
-            </div>
-
-            <div style={{ fontSize: 18, lineHeight: 1.6, marginBottom: 16 }}>
-              {question.prompt}
-            </div>
-
-            <div style={{ display: "grid", gap: 10 }}>
-              {(["A", "B", "C", "D"] as const).map((key) => (
-                <button
-                  key={key}
-                  onClick={() => setSelected(key)}
-                  style={{
-                    display: "block",
-                    textAlign: "left",
-                    padding: 14,
-                    width: "100%",
-                    background: selected === key ? "#fff" : "#111",
-                    color: selected === key ? "#000" : "#fff",
-                    border: "1px solid rgba(255,255,255,0.14)",
-                    borderRadius: 12,
-                    cursor: "pointer",
-                    lineHeight: 1.5,
-                  }}
-                >
-                  <strong>{key}.</strong> {question.choices[key]}
-                </button>
-              ))}
-            </div>
-
-            <button
-              onClick={checkAnswer}
-              disabled={!selected}
-              style={{
-                marginTop: 18,
-                padding: "12px 16px",
-                fontWeight: 800,
-                borderRadius: 10,
-                border: "1px solid #fff",
-                background: !selected ? "#333" : "#fff",
-                color: !selected ? "#bbb" : "#000",
-                cursor: !selected ? "not-allowed" : "pointer",
-              }}
-            >
-              Check Answer
-            </button>
-
-            {feedback && (
-              <div
-                style={{
-                  marginTop: 20,
-                  padding: 16,
-                  borderRadius: 14,
-                  border: "1px solid rgba(255,255,255,0.14)",
-                  background: "#0b0b0b",
-                }}
-              >
-                <strong>Explanation:</strong>
-                <p style={{ marginTop: 10, lineHeight: 1.6 }}>{feedback}</p>
-              </div>
-            )}
+            Score: {score}/{questions.length}
           </div>
         )}
+
+        {questions.map((q, index) => {
+          const selectedAnswer = selected[index];
+          const correct = selectedAnswer === q.answer;
+
+          return (
+            <div
+              key={index}
+              style={{
+                border: "1px solid rgba(255,255,255,0.14)",
+                borderRadius: 18,
+                padding: 20,
+                background: "rgba(255,255,255,0.04)",
+                marginBottom: 20,
+              }}
+            >
+              <div style={{ fontSize: 18, fontWeight: 900, marginBottom: 14 }}>
+                Question {index + 1}
+              </div>
+
+              <div style={{ fontSize: 18, lineHeight: 1.6, marginBottom: 16 }}>
+                {q.prompt}
+              </div>
+
+              <div style={{ display: "grid", gap: 10 }}>
+                {(["A", "B", "C", "D"] as const).map((key) => {
+                  const isSelected = selectedAnswer === key;
+                  const showCorrect = submitted && q.answer === key;
+                  const showWrong = submitted && isSelected && q.answer !== key;
+
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => choose(index, key)}
+                      style={{
+                        display: "block",
+                        textAlign: "left",
+                        padding: 14,
+                        width: "100%",
+                        background: isSelected ? "#fff" : "#111",
+                        color: isSelected ? "#000" : "#fff",
+                        border: showCorrect
+                          ? "2px solid rgba(110,255,170,0.8)"
+                          : showWrong
+                          ? "2px solid rgba(255,120,120,0.8)"
+                          : "1px solid rgba(255,255,255,0.14)",
+                        borderRadius: 12,
+                        cursor: submitted ? "default" : "pointer",
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      <strong>{key}.</strong> {q.choices[key]}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {submitted && (
+                <div
+                  style={{
+                    marginTop: 18,
+                    padding: 16,
+                    borderRadius: 14,
+                    border: correct
+                      ? "1px solid rgba(110,255,170,0.75)"
+                      : "1px solid rgba(255,120,120,0.75)",
+                    background: correct
+                      ? "rgba(110,255,170,0.08)"
+                      : "rgba(255,120,120,0.08)",
+                  }}
+                >
+                  <strong>
+                    {correct ? "✅ Correct" : "❌ Incorrect"} (Correct: {q.answer})
+                  </strong>
+                  <p style={{ marginTop: 10, lineHeight: 1.6 }}>{q.explanation}</p>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </main>
   );

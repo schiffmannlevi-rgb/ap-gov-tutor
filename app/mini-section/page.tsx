@@ -44,17 +44,13 @@ export default function MiniSectionPage() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  const [mcqAnswers, setMcqAnswers] = useState<
-    Record<number, "A" | "B" | "C" | "D" | null>
-  >({});
+  const [mcqAnswers, setMcqAnswers] = useState<Record<number, "A" | "B" | "C" | "D" | null>>({});
   const [frqAnswers, setFrqAnswers] = useState<Record<number, string>>({});
   const [submitted, setSubmitted] = useState(false);
 
-  const [timeLeft, setTimeLeft] = useState(1440); // 24 minutes
+  const [timeLeft, setTimeLeft] = useState(1440);
   const [frqGrading, setFrqGrading] = useState(false);
-  const [frqResults, setFrqResults] = useState<Record<number, FrqGrade | null>>(
-    {}
-  );
+  const [frqResults, setFrqResults] = useState<Record<number, FrqGrade | null>>({});
 
   useEffect(() => {
     if (!section || submitted) return;
@@ -162,13 +158,12 @@ export default function MiniSectionPage() {
         background: "#000",
         color: "#fff",
         padding: "36px 18px 60px",
-        fontFamily:
-          'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
       }}
     >
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
         <Link
-          href="/"
+          href="/gov"
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -191,7 +186,6 @@ export default function MiniSectionPage() {
             padding: 24,
             background:
               "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03))",
-            boxShadow: "0 10px 40px rgba(0,0,0,0.35)",
           }}
         >
           <div
@@ -223,7 +217,6 @@ export default function MiniSectionPage() {
                   fontSize: 42,
                   margin: "0 0 10px",
                   fontWeight: 900,
-                  letterSpacing: "-0.02em",
                 }}
               >
                 Timed Mini Section
@@ -239,8 +232,7 @@ export default function MiniSectionPage() {
                 }}
               >
                 Take a 24-minute AP Gov drill with 13 multiple-choice questions
-                and 2 free-response questions. Choose a specific unit or practice
-                all AP Gov at once.
+                and 2 free-response questions.
               </p>
             </div>
 
@@ -262,7 +254,6 @@ export default function MiniSectionPage() {
                   fontSize: 34,
                   fontWeight: 900,
                   color: timeLeft <= 120 ? "#ff7b7b" : "#ffffff",
-                  letterSpacing: "-0.03em",
                 }}
               >
                 {formatTime(timeLeft)}
@@ -312,49 +303,25 @@ export default function MiniSectionPage() {
                 color: "#000",
                 fontWeight: 900,
                 cursor: loading ? "not-allowed" : "pointer",
-                boxShadow: "0 6px 20px rgba(255,255,255,0.08)",
               }}
             >
               {loading ? "Generating..." : "Start Section"}
             </button>
-
-            {section && !submitted && (
-              <button
-                onClick={submitSection}
-                style={{
-                  padding: "10px 16px",
-                  borderRadius: 12,
-                  border: "1px solid rgba(255,255,255,0.2)",
-                  background: "rgba(255,255,255,0.06)",
-                  color: "#fff",
-                  fontWeight: 800,
-                  cursor: "pointer",
-                }}
-              >
-                Submit Section
-              </button>
-            )}
           </div>
 
           {submitted && section && (
             <div
               style={{
                 marginTop: 22,
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                gap: 14,
+                padding: 18,
+                borderRadius: 16,
+                border: "1px solid #333",
+                background: "#0a0a0a",
+                fontWeight: 900,
+                fontSize: 22,
               }}
             >
-              <SummaryCard
-                title="MCQ Score"
-                value={`${mcqScore}/13`}
-                accent={mcqScore >= 10 ? "#7dffae" : mcqScore >= 7 ? "#ffd56f" : "#ff8b8b"}
-              />
-              <SummaryCard
-                title="FRQ Status"
-                value={frqGrading ? "Grading..." : "Complete"}
-                accent="#8fc7ff"
-              />
+              MCQ Score: {mcqScore}/13 {frqGrading ? "• Grading FRQs..." : ""}
             </div>
           )}
         </div>
@@ -370,8 +337,7 @@ export default function MiniSectionPage() {
               fontWeight: 700,
             }}
           >
-            <div style={{ marginBottom: 6 }}>Error</div>
-            <div style={{ opacity: 0.92 }}>{err}</div>
+            {err}
           </div>
         )}
 
@@ -381,11 +347,20 @@ export default function MiniSectionPage() {
             const correct = selectedAnswer === q.answer;
 
             return (
-              <SectionCard
+              <div
                 key={`mcq-${index}`}
-                title={`MCQ ${index + 1}`}
-                subtitle={q.unit}
+                style={{
+                  marginTop: 22,
+                  border: "1px solid rgba(255,255,255,0.14)",
+                  borderRadius: 22,
+                  padding: 20,
+                  background: "rgba(255,255,255,0.035)",
+                }}
               >
+                <div style={{ fontSize: 22, fontWeight: 900, marginBottom: 12 }}>
+                  MCQ {index + 1}
+                </div>
+
                 <div style={{ fontSize: 18, lineHeight: 1.6 }}>{q.prompt}</div>
 
                 <div style={{ marginTop: 18, display: "grid", gap: 10 }}>
@@ -403,13 +378,11 @@ export default function MiniSectionPage() {
                           padding: "14px 16px",
                           borderRadius: 14,
                           border: showCorrect
-                            ? "1px solid rgba(110,255,170,0.8)"
+                            ? "2px solid rgba(0,255,0,0.65)"
                             : showWrong
-                            ? "1px solid rgba(255,120,120,0.8)"
+                            ? "2px solid rgba(255,0,0,0.65)"
                             : "1px solid rgba(255,255,255,0.16)",
-                          background: isSelected
-                            ? "#fff"
-                            : "rgba(255,255,255,0.035)",
+                          background: isSelected ? "#fff" : "rgba(255,255,255,0.035)",
                           color: isSelected ? "#000" : "#fff",
                           cursor: submitted ? "default" : "pointer",
                           lineHeight: 1.45,
@@ -422,24 +395,45 @@ export default function MiniSectionPage() {
                 </div>
 
                 {submitted && (
-                  <ResultBox success={correct}>
+                  <div
+                    style={{
+                      marginTop: 16,
+                      borderRadius: 16,
+                      border: correct
+                        ? "1px solid rgba(0,255,0,0.4)"
+                        : "1px solid rgba(255,0,0,0.4)",
+                      padding: 16,
+                      background: correct
+                        ? "rgba(0,255,0,0.07)"
+                        : "rgba(255,0,0,0.07)",
+                    }}
+                  >
                     <strong>
                       {correct ? "✅ Correct" : "❌ Incorrect"} (Correct: {q.answer})
                     </strong>
                     <div style={{ marginTop: 8, lineHeight: 1.65 }}>{q.explanation}</div>
-                  </ResultBox>
+                  </div>
                 )}
-              </SectionCard>
+              </div>
             );
           })}
 
         {section &&
           section.frqs.map((frq, index) => (
-            <SectionCard
+            <div
               key={`frq-${index}`}
-              title={`FRQ ${index + 1}`}
-              subtitle={`${frq.unit} • ${frq.type}`}
+              style={{
+                marginTop: 22,
+                border: "1px solid rgba(255,255,255,0.14)",
+                borderRadius: 22,
+                padding: 20,
+                background: "rgba(255,255,255,0.035)",
+              }}
             >
+              <div style={{ fontSize: 22, fontWeight: 900, marginBottom: 12 }}>
+                FRQ {index + 1} — {frq.type}
+              </div>
+
               <div style={{ fontSize: 18, lineHeight: 1.6 }}>{frq.prompt}</div>
 
               <textarea
@@ -509,110 +503,27 @@ export default function MiniSectionPage() {
                   )}
                 </div>
               )}
-            </SectionCard>
+            </div>
           ))}
-      </div>
-    </main>
-  );
-}
 
-function SectionCard({
-  title,
-  subtitle,
-  children,
-}: {
-  title: string;
-  subtitle?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      style={{
-        marginTop: 22,
-        border: "1px solid rgba(255,255,255,0.14)",
-        borderRadius: 22,
-        padding: 20,
-        background: "rgba(255,255,255,0.035)",
-        boxShadow: "0 8px 30px rgba(0,0,0,0.25)",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          gap: 10,
-          alignItems: "center",
-          marginBottom: 12,
-          flexWrap: "wrap",
-        }}
-      >
-        <div style={{ fontSize: 22, fontWeight: 900 }}>{title}</div>
-        {subtitle ? (
-          <div
+        {section && !submitted && (
+          <button
+            onClick={submitSection}
             style={{
-              fontSize: 13,
-              color: "#d5d5d5",
-              padding: "5px 10px",
-              borderRadius: 999,
-              border: "1px solid rgba(255,255,255,0.16)",
+              marginTop: 24,
+              padding: "12px 16px",
+              borderRadius: 14,
+              border: "1px solid #fff",
+              background: "#fff",
+              color: "#000",
+              fontWeight: 900,
+              cursor: "pointer",
             }}
           >
-            {subtitle}
-          </div>
-        ) : null}
+            Submit Section
+          </button>
+        )}
       </div>
-
-      {children}
-    </div>
-  );
-}
-
-function ResultBox({
-  success,
-  children,
-}: {
-  success: boolean | null;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      style={{
-        marginTop: 16,
-        borderRadius: 16,
-        border: success
-          ? "1px solid rgba(110,255,170,0.75)"
-          : "1px solid rgba(255,120,120,0.75)",
-        padding: 16,
-        background: success
-          ? "rgba(110,255,170,0.08)"
-          : "rgba(255,120,120,0.08)",
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-function SummaryCard({
-  title,
-  value,
-  accent,
-}: {
-  title: string;
-  value: string;
-  accent: string;
-}) {
-  return (
-    <div
-      style={{
-        borderRadius: 18,
-        padding: 16,
-        border: `1px solid ${accent}`,
-        background: "rgba(255,255,255,0.035)",
-      }}
-    >
-      <div style={{ fontSize: 13, color: "#d4d4d4", marginBottom: 8 }}>{title}</div>
-      <div style={{ fontSize: 28, fontWeight: 900, color: accent }}>{value}</div>
-    </div>
+    </main>
   );
 }

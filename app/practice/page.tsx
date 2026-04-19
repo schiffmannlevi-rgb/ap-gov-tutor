@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 type Mcq = {
+  subject?: string;
   unit: string;
   prompt: string;
   choices: { A: string; B: string; C: string; D: string };
@@ -11,26 +12,27 @@ type Mcq = {
   explanation: string;
 };
 
-const UNITS: { value: string; label: string }[] = [
+const GOV_UNITS = [
   { value: "1", label: "Unit 1 — Foundations" },
-  { value: "2", label: "Unit 2 — Interactions Among Branches" },
+  { value: "2", label: "Unit 2 — Institutions" },
   { value: "3", label: "Unit 3 — Civil Liberties & Rights" },
   { value: "4", label: "Unit 4 — Ideologies & Beliefs" },
   { value: "5", label: "Unit 5 — Political Participation" },
+  { value: "any", label: "Any Unit" },
 ];
 
 export default function PracticePage() {
-  const [unit, setUnit] = useState("1");
+  const [unit, setUnit] = useState("any");
   const [questions, setQuestions] = useState<Mcq[]>([]);
   const [selected, setSelected] = useState<Record<number, "A" | "B" | "C" | "D" | null>>({});
-  const [checked, setChecked] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
+  const [err, setErr] = useState("");
 
   async function generate() {
     setLoading(true);
-    setErr(null);
-    setChecked(false);
+    setErr("");
+    setSubmitted(false);
     setSelected({});
     setQuestions([]);
 
@@ -38,18 +40,17 @@ export default function PracticePage() {
       const r = await fetch("/api/mcq", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ unit }),
+        body: JSON.stringify({
+          subject: "gov",
+          unit,
+          count: 5,
+        }),
       });
 
       const data = await r.json();
 
       if (!r.ok) {
-        const msg =
-          data?.details?.error?.message ||
-          data?.details?.message ||
-          data?.error ||
-          "Request failed";
-        setErr(String(msg));
+        setErr(data?.error || "Failed to generate questions");
         return;
       }
 
@@ -61,17 +62,17 @@ export default function PracticePage() {
     }
   }
 
-  function setAnswer(index: number, answer: "A" | "B" | "C" | "D") {
-    if (checked) return;
+  function choose(index: number, answer: "A" | "B" | "C" | "D") {
+    if (submitted) return;
     setSelected((prev) => ({ ...prev, [index]: answer }));
   }
 
-  function checkAll() {
-    setChecked(true);
+  function submitAnswers() {
+    setSubmitted(true);
   }
 
   const answeredCount = Object.values(selected).filter(Boolean).length;
-  const score = checked
+  const score = submitted
     ? questions.reduce((sum, q, i) => sum + (selected[i] === q.answer ? 1 : 0), 0)
     : 0;
 
@@ -81,48 +82,44 @@ export default function PracticePage() {
         minHeight: "100vh",
         background: "#000",
         color: "#fff",
-        padding: "48px 18px",
-        fontFamily:
-          'system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif',
+        padding: 40,
+        fontFamily: "system-ui",
       }}
     >
-      <Link
-        href="/"
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 8,
-          marginBottom: 20,
-          textDecoration: "none",
-          color: "#fff",
-          fontWeight: 800,
-          opacity: 0.9,
-        }}
-      >
-        <span style={{ fontSize: 20 }}>←</span>
-        <span>Back</span>
-      </Link>
-
       <div style={{ maxWidth: 980, margin: "0 auto" }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap" }}>
-          <h1 style={{ fontSize: 44, margin: 0, fontWeight: 900 }}>
-            Practice
-          </h1>
-          <div style={{ opacity: 0.85, fontWeight: 600 }}>
-            {UNITS.find((u) => u.value === unit)?.label}
-          </div>
-        </div>
+        <Link
+          href="/gov"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            marginBottom: 24,
+            textDecoration: "none",
+            color: "#fff",
+            fontWeight: 800,
+          }}
+        >
+          <span style={{ fontSize: 20 }}>←</span>
+          <span>Back</span>
+        </Link>
+
+        <h1 style={{ fontSize: 42, marginBottom: 8, fontWeight: 900 }}>
+          AP Gov Practice
+        </h1>
+
+        <p style={{ color: "#d6d6d6", marginBottom: 24, lineHeight: 1.5 }}>
+          Generate 5 AP Gov MCQs at a time and check them all at once.
+        </p>
 
         <div
           style={{
-            marginTop: 18,
             display: "flex",
             gap: 12,
             alignItems: "center",
             flexWrap: "wrap",
+            marginBottom: 24,
           }}
         >
-          <label style={{ fontWeight: 700 }}>Unit</label>
           <select
             value={unit}
             onChange={(e) => setUnit(e.target.value)}
@@ -130,12 +127,12 @@ export default function PracticePage() {
               background: "#111",
               color: "#fff",
               border: "1px solid #444",
-              padding: "8px 10px",
+              padding: "10px 12px",
               borderRadius: 10,
               fontWeight: 700,
             }}
           >
-            {UNITS.map((u) => (
+            {GOV_UNITS.map((u) => (
               <option key={u.value} value={u.value}>
                 {u.label}
               </option>
@@ -146,30 +143,29 @@ export default function PracticePage() {
             onClick={generate}
             disabled={loading}
             style={{
-              marginLeft: 8,
-              padding: "10px 14px",
-              borderRadius: 12,
+              padding: "10px 16px",
+              borderRadius: 10,
               border: "1px solid #fff",
               background: "#fff",
               color: "#000",
-              fontWeight: 900,
+              fontWeight: 800,
               cursor: loading ? "not-allowed" : "pointer",
             }}
           >
             {loading ? "Generating..." : "Generate 5 Questions"}
           </button>
 
-          {questions.length > 0 && !checked && (
+          {questions.length > 0 && !submitted && (
             <button
-              onClick={checkAll}
+              onClick={submitAnswers}
               disabled={answeredCount !== questions.length}
               style={{
-                padding: "10px 14px",
-                borderRadius: 12,
+                padding: "10px 16px",
+                borderRadius: 10,
                 border: "1px solid #fff",
                 background: answeredCount === questions.length ? "#fff" : "#333",
                 color: answeredCount === questions.length ? "#000" : "#bbb",
-                fontWeight: 900,
+                fontWeight: 800,
                 cursor: answeredCount === questions.length ? "pointer" : "not-allowed",
               }}
             >
@@ -181,32 +177,25 @@ export default function PracticePage() {
         {err && (
           <div
             style={{
-              marginTop: 18,
-              background: "rgba(255,0,0,0.10)",
-              border: "1px solid rgba(255,0,0,0.35)",
-              padding: 16,
-              borderRadius: 14,
-              fontWeight: 700,
+              marginBottom: 20,
+              padding: 14,
+              borderRadius: 12,
+              border: "1px solid rgba(255,80,80,0.5)",
+              background: "rgba(255,80,80,0.12)",
+              color: "#ffd4d4",
             }}
           >
-            <div style={{ marginBottom: 6 }}>Error</div>
-            <div style={{ opacity: 0.9 }}>{err}</div>
+            {err}
           </div>
         )}
 
-        {questions.length === 0 && !err && (
-          <div style={{ marginTop: 22, opacity: 0.85, fontWeight: 600 }}>
-            Click <b>Generate 5 Questions</b> to start.
-          </div>
-        )}
-
-        {checked && questions.length > 0 && (
+        {submitted && questions.length > 0 && (
           <div
             style={{
-              marginTop: 22,
+              marginBottom: 20,
               padding: 18,
               borderRadius: 16,
-              border: "1px solid #333",
+              border: "1px solid rgba(255,255,255,0.14)",
               background: "#0a0a0a",
               fontWeight: 900,
               fontSize: 22,
@@ -224,65 +213,72 @@ export default function PracticePage() {
             <div
               key={index}
               style={{
-                marginTop: 22,
-                border: "1px solid #333",
-                borderRadius: 16,
-                padding: 18,
-                background: "#0a0a0a",
+                border: "1px solid rgba(255,255,255,0.14)",
+                borderRadius: 18,
+                padding: 20,
+                background: "rgba(255,255,255,0.04)",
+                marginBottom: 20,
               }}
             >
-              <div style={{ fontSize: 18, fontWeight: 900, marginBottom: 10 }}>
+              <div style={{ fontSize: 18, fontWeight: 900, marginBottom: 14 }}>
                 Question {index + 1}
               </div>
-              <div style={{ fontSize: 18, lineHeight: 1.5 }}>{q.prompt}</div>
 
-              <div style={{ marginTop: 16, display: "grid", gap: 10 }}>
-                {(["A", "B", "C", "D"] as const).map((letter) => {
-                  const isSelected = selectedAnswer === letter;
-                  const showCorrect = checked && q.answer === letter;
-                  const showWrong = checked && isSelected && q.answer !== letter;
+              <div style={{ fontSize: 18, lineHeight: 1.6, marginBottom: 16 }}>
+                {q.prompt}
+              </div>
+
+              <div style={{ display: "grid", gap: 10 }}>
+                {(["A", "B", "C", "D"] as const).map((key) => {
+                  const isSelected = selectedAnswer === key;
+                  const showCorrect = submitted && q.answer === key;
+                  const showWrong = submitted && isSelected && q.answer !== key;
 
                   return (
                     <button
-                      key={letter}
-                      onClick={() => setAnswer(index, letter)}
+                      key={key}
+                      onClick={() => choose(index, key)}
                       style={{
+                        display: "block",
                         textAlign: "left",
-                        padding: "14px",
-                        borderRadius: 14,
-                        border: "1px solid #333",
-                        background: isSelected ? "#fff" : "#0a0a0a",
+                        padding: 14,
+                        width: "100%",
+                        background: isSelected ? "#fff" : "#111",
                         color: isSelected ? "#000" : "#fff",
-                        cursor: checked ? "default" : "pointer",
-                        outline: showCorrect
-                          ? "2px solid rgba(0,255,0,0.65)"
+                        border: showCorrect
+                          ? "2px solid rgba(110,255,170,0.8)"
                           : showWrong
-                          ? "2px solid rgba(255,0,0,0.65)"
-                          : "none",
+                          ? "2px solid rgba(255,120,120,0.8)"
+                          : "1px solid rgba(255,255,255,0.14)",
+                        borderRadius: 12,
+                        cursor: submitted ? "default" : "pointer",
+                        lineHeight: 1.5,
                       }}
                     >
-                      <strong>{letter}.</strong> {q.choices[letter]}
+                      <strong>{key}.</strong> {q.choices[key]}
                     </button>
                   );
                 })}
               </div>
 
-              {checked && (
+              {submitted && (
                 <div
                   style={{
-                    marginTop: 16,
-                    borderRadius: 16,
-                    border: "1px solid #333",
+                    marginTop: 18,
                     padding: 16,
-                    background: "#111",
+                    borderRadius: 14,
+                    border: correct
+                      ? "1px solid rgba(110,255,170,0.75)"
+                      : "1px solid rgba(255,120,120,0.75)",
+                    background: correct
+                      ? "rgba(110,255,170,0.08)"
+                      : "rgba(255,120,120,0.08)",
                   }}
                 >
                   <strong>
-                    {correct ? " Correct" : " Incorrect"} (Correct: {q.answer})
+                    {correct ? "✅ Correct" : "❌ Incorrect"} (Correct: {q.answer})
                   </strong>
-                  <div style={{ marginTop: 8, lineHeight: 1.6 }}>
-                    {q.explanation}
-                  </div>
+                  <p style={{ marginTop: 10, lineHeight: 1.6 }}>{q.explanation}</p>
                 </div>
               )}
             </div>
