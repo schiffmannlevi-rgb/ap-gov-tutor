@@ -17,16 +17,42 @@ type FrqResult = {
 };
 
 export default function FrqPage() {
-  const [prompt, setPrompt] = useState(
-    "Develop an argument that explains whether the power of the presidency has increased over time. Use at least one piece of evidence such as an institution, policy action, or Supreme Court case."
-  );
+  const [prompt, setPrompt] = useState("");
   const [studentResponse, setStudentResponse] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loadingPrompt, setLoadingPrompt] = useState(false);
+  const [loadingGrade, setLoadingGrade] = useState(false);
   const [result, setResult] = useState<FrqResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  async function generatePrompt() {
+    setLoadingPrompt(true);
+    setError(null);
+    setResult(null);
+    setStudentResponse("");
+
+    try {
+      const r = await fetch("/api/frq-generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subject: "gov" }),
+      });
+
+      const data = await r.json();
+
+      if (!r.ok) {
+        throw new Error(data?.error || "Failed to generate FRQ");
+      }
+
+      setPrompt(data.prompt || "");
+    } catch (e: any) {
+      setError(String(e?.message ?? e));
+    } finally {
+      setLoadingPrompt(false);
+    }
+  }
+
   async function grade() {
-    setLoading(true);
+    setLoadingGrade(true);
     setError(null);
     setResult(null);
 
@@ -50,7 +76,7 @@ export default function FrqPage() {
     } catch (e: any) {
       setError(String(e?.message ?? e));
     } finally {
-      setLoading(false);
+      setLoadingGrade(false);
     }
   }
 
@@ -72,27 +98,51 @@ export default function FrqPage() {
 
       <h1 style={{ fontSize: 36, marginTop: 20 }}>FRQ Studio</h1>
       <p style={{ color: "#e5e5e5" }}>
-        Write a response and get rubric-style scoring with clearer feedback.
+        Generate a prompt, write your response, and get rubric-style scoring.
       </p>
 
-      <div style={{ display: "grid", gap: 14, marginTop: 18 }}>
-        <label style={{ fontWeight: 700 }}>Prompt</label>
-        <textarea
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          rows={5}
-          style={{
-            width: "100%",
-            padding: 12,
-            borderRadius: 12,
-            border: "2px solid #ffffff",
-            background: "#000000",
-            color: "#ffffff",
-            fontSize: 16,
-          }}
-        />
+      <button
+        onClick={generatePrompt}
+        style={{
+          marginTop: 12,
+          marginBottom: 20,
+          padding: "12px 16px",
+          borderRadius: 12,
+          border: "2px solid #ffffff",
+          background: loadingPrompt ? "#222222" : "#ffffff",
+          color: loadingPrompt ? "#ffffff" : "#000000",
+          fontWeight: 800,
+          cursor: loadingPrompt ? "not-allowed" : "pointer",
+        }}
+      >
+        {loadingPrompt ? "Generating..." : "Generate Prompt"}
+      </button>
 
-        <label style={{ fontWeight: 700, marginTop: 6 }}>Your Response</label>
+      <div
+        style={{
+          border: "1px solid rgba(255,255,255,0.14)",
+          borderRadius: 16,
+          padding: 18,
+          background: "#111",
+          marginBottom: 18,
+        }}
+      >
+        <div style={{ fontWeight: 900, marginBottom: 10 }}>Prompt</div>
+        <div style={{ lineHeight: 1.6, color: "#f1f1f1" }}>
+          {prompt || "Click “Generate Prompt” to load an AP Gov FRQ."}
+        </div>
+      </div>
+
+      <div
+        style={{
+          border: "1px solid rgba(255,255,255,0.14)",
+          borderRadius: 16,
+          padding: 18,
+          background: "#111",
+          marginBottom: 18,
+        }}
+      >
+        <div style={{ fontWeight: 900, marginBottom: 10 }}>Your Response</div>
         <textarea
           value={studentResponse}
           onChange={(e) => setStudentResponse(e.target.value)}
@@ -100,94 +150,104 @@ export default function FrqPage() {
           placeholder="Write your FRQ response here..."
           style={{
             width: "100%",
-            padding: 12,
+            padding: 14,
             borderRadius: 12,
-            border: "2px solid #ffffff",
-            background: "#000000",
-            color: "#ffffff",
+            border: "1px solid #333",
+            background: "#0b0b0b",
+            color: "#fff",
             fontSize: 16,
+            lineHeight: 1.5,
+            resize: "vertical",
           }}
         />
+      </div>
 
-        <button
-          onClick={grade}
-          disabled={loading || studentResponse.trim().length < 20}
+      <button
+        onClick={grade}
+        disabled={loadingGrade || !prompt.trim() || studentResponse.trim().length < 20}
+        style={{
+          padding: "12px 16px",
+          borderRadius: 12,
+          border: "2px solid #ffffff",
+          background:
+            loadingGrade || !prompt.trim() || studentResponse.trim().length < 20
+              ? "#222222"
+              : "#ffffff",
+          color:
+            loadingGrade || !prompt.trim() || studentResponse.trim().length < 20
+              ? "#ffffff"
+              : "#000000",
+          fontWeight: 800,
+          cursor:
+            loadingGrade || !prompt.trim() || studentResponse.trim().length < 20
+              ? "not-allowed"
+              : "pointer",
+        }}
+      >
+        {loadingGrade ? "Grading..." : "Grade with AI"}
+      </button>
+
+      {error && (
+        <div
           style={{
-            marginTop: 8,
-            padding: "12px 16px",
+            marginTop: 10,
+            padding: 12,
             borderRadius: 12,
-            border: "2px solid #ffffff",
-            background: loading ? "#222222" : "#ffffff",
-            color: loading ? "#ffffff" : "#000000",
-            fontWeight: 800,
-            cursor: loading ? "not-allowed" : "pointer",
+            border: "2px solid #ef4444",
+            color: "#fecaca",
+            whiteSpace: "pre-wrap",
           }}
         >
-          {loading ? "Grading..." : "Grade with AI"}
-        </button>
+          <b>Error:</b> {error}
+        </div>
+      )}
 
-        {error && (
-          <div
-            style={{
-              marginTop: 10,
-              padding: 12,
-              borderRadius: 12,
-              border: "2px solid #ef4444",
-              color: "#fecaca",
-              whiteSpace: "pre-wrap",
-            }}
-          >
-            <b>Error:</b> {error}
+      {result && (
+        <div
+          style={{
+            marginTop: 10,
+            padding: 16,
+            borderRadius: 16,
+            border: "2px solid #ffffff",
+          }}
+        >
+          <div style={{ fontSize: 22, fontWeight: 900 }}>
+            Score: {result.overall_score_0_to_6}/6
           </div>
-        )}
 
-        {result && (
-          <div
-            style={{
-              marginTop: 10,
-              padding: 16,
-              borderRadius: 16,
-              border: "2px solid #ffffff",
-            }}
-          >
-            <div style={{ fontSize: 22, fontWeight: 900 }}>
-              Score: {result.overall_score_0_to_6}/6
+          {result.breakdown && (
+            <div
+              style={{
+                marginTop: 14,
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                gap: 10,
+              }}
+            >
+              <ScoreCard
+                title="Thesis / Claim"
+                value={`${result.breakdown.thesis_claim_0_to_1 ?? 0}/1`}
+              />
+              <ScoreCard
+                title="Evidence"
+                value={`${result.breakdown.evidence_0_to_2 ?? 0}/2`}
+              />
+              <ScoreCard
+                title="Reasoning"
+                value={`${result.breakdown.reasoning_0_to_2 ?? 0}/2`}
+              />
+              <ScoreCard
+                title="Accuracy / Precision"
+                value={`${result.breakdown.accuracy_precision_0_to_1 ?? 0}/1`}
+              />
             </div>
+          )}
 
-            {result.breakdown && (
-              <div
-                style={{
-                  marginTop: 14,
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                  gap: 10,
-                }}
-              >
-                <ScoreCard
-                  title="Thesis / Claim"
-                  value={`${result.breakdown.thesis_claim_0_to_1 ?? 0}/1`}
-                />
-                <ScoreCard
-                  title="Evidence"
-                  value={`${result.breakdown.evidence_0_to_2 ?? 0}/2`}
-                />
-                <ScoreCard
-                  title="Reasoning"
-                  value={`${result.breakdown.reasoning_0_to_2 ?? 0}/2`}
-                />
-                <ScoreCard
-                  title="Accuracy / Precision"
-                  value={`${result.breakdown.accuracy_precision_0_to_1 ?? 0}/1`}
-                />
-              </div>
-            )}
-
-            <Section title="What you did well" items={result.what_was_done_well} />
-            <Section title="What to improve" items={result.what_to_improve} />
-            <Section title="Missing or incorrect" items={result.missing_or_incorrect} />
-          </div>
-        )}
-      </div>
+          <Section title="What you did well" items={result.what_was_done_well} />
+          <Section title="What to improve" items={result.what_to_improve} />
+          <Section title="Missing or incorrect" items={result.missing_or_incorrect} />
+        </div>
+      )}
     </main>
   );
 }

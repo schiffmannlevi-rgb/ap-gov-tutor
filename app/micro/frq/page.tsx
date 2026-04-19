@@ -28,6 +28,7 @@ export default function MicroFrqPage() {
     setLoadingPrompt(true);
     setError("");
     setResult(null);
+    setResponse("");
 
     try {
       const res = await fetch("/api/frq-generate", {
@@ -110,7 +111,8 @@ export default function MicroFrqPage() {
             marginBottom: 24,
           }}
         >
-          ← Back
+          <span style={{ fontSize: 20 }}>←</span>
+          <span>Back</span>
         </Link>
 
         <h1 style={{ fontSize: 42, fontWeight: 900 }}>
@@ -118,10 +120,9 @@ export default function MicroFrqPage() {
         </h1>
 
         <p style={{ color: "#ccc", marginBottom: 20 }}>
-          Write your own prompt or generate one, then get rubric-based grading.
+          Generate a prompt, write your response, and get rubric-based grading.
         </p>
 
-        {/* BUTTON */}
         <button
           onClick={generatePrompt}
           style={{
@@ -132,12 +133,12 @@ export default function MicroFrqPage() {
             color: "#000",
             fontWeight: 800,
             marginBottom: 20,
+            cursor: loadingPrompt ? "not-allowed" : "pointer",
           }}
         >
           {loadingPrompt ? "Generating..." : "Generate Prompt"}
         </button>
 
-        {/* PROMPT INPUT */}
         <div
           style={{
             border: "1px solid rgba(255,255,255,0.14)",
@@ -148,27 +149,11 @@ export default function MicroFrqPage() {
           }}
         >
           <div style={{ fontWeight: 900, marginBottom: 10 }}>Prompt</div>
-
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Write or generate an AP Micro FRQ prompt..."
-            rows={5}
-            style={{
-              width: "100%",
-              padding: 14,
-              borderRadius: 12,
-              border: "1px solid #333",
-              background: "#0b0b0b",
-              color: "#fff",
-              fontSize: 16,
-              lineHeight: 1.5,
-              resize: "vertical",
-            }}
-          />
+          <div style={{ lineHeight: 1.6, color: "#f1f1f1" }}>
+            {prompt || "Click “Generate Prompt” to load an AP Micro FRQ."}
+          </div>
         </div>
 
-        {/* RESPONSE INPUT */}
         <div
           style={{
             border: "1px solid rgba(255,255,255,0.14)",
@@ -199,7 +184,6 @@ export default function MicroFrqPage() {
           />
         </div>
 
-        {/* GRADE BUTTON */}
         <button
           onClick={gradeResponse}
           disabled={!prompt.trim() || !response.trim()}
@@ -215,12 +199,10 @@ export default function MicroFrqPage() {
           {loadingGrade ? "Grading..." : "Grade Response"}
         </button>
 
-        {/* ERROR */}
         {error && (
           <div style={{ marginTop: 20, color: "#ffb4b4" }}>{error}</div>
         )}
 
-        {/* RESULT */}
         {result && (
           <div
             style={{
