@@ -1,6 +1,6 @@
 export const metadata = {
-  title: "Levi’s AI Gov Tutor",
-  description: "An AI-powered AP U.S. Government study tool",
+  title: "Levi’s AP Tutor Hub",
+  description: "An AP study tool",
 };
 
 export default function RootLayout({
