@@ -409,7 +409,7 @@ export default function MiniSectionPage() {
                     }}
                   >
                     <strong>
-                      {correct ? "✅ Correct" : "❌ Incorrect"} (Correct: {q.answer})
+                      {correct ? "Correct" : "Incorrect"} (Correct: {q.answer})
                     </strong>
                     <div style={{ marginTop: 8, lineHeight: 1.65 }}>{q.explanation}</div>
                   </div>

@@ -14,42 +14,43 @@ type Mcq = {
 
 const GOV_UNITS = [
   { value: "1", label: "Unit 1 — Foundations" },
-  { value: "2", label: "Unit 2 — Institutions" },
-  { value: "3", label: "Unit 3 — Civil Liberties & Rights" },
-  { value: "4", label: "Unit 4 — Ideologies & Beliefs" },
+  { value: "2", label: "Unit 2 — Interactions Among Branches" },
+  { value: "3", label: "Unit 3 — Civil Liberties and Rights" },
+  { value: "4", label: "Unit 4 — American Political Ideologies and Beliefs" },
   { value: "5", label: "Unit 5 — Political Participation" },
   { value: "any", label: "Any Unit" },
 ];
 
-export default function PracticePage() {
+export default function GovPracticePage() {
   const [unit, setUnit] = useState("any");
   const [questions, setQuestions] = useState<Mcq[]>([]);
   const [selected, setSelected] = useState<Record<number, "A" | "B" | "C" | "D" | null>>({});
-  const [submitted, setSubmitted] = useState(false);
+  const [checked, setChecked] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+
+  const answeredCount = Object.values(selected).filter(Boolean).length;
+  const score = checked
+    ? questions.reduce((sum, q, i) => sum + (selected[i] === q.answer ? 1 : 0), 0)
+    : 0;
 
   async function generate() {
     setLoading(true);
-    setErr("");
-    setSubmitted(false);
+    setErr(null);
+    setChecked(false);
     setSelected({});
     setQuestions([]);
 
     try {
-      const r = await fetch("/api/mcq", {
+      const res = await fetch("/api/mcq", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          subject: "gov",
-          unit,
-          count: 5,
-        }),
+        body: JSON.stringify({ subject: "gov", unit, count: 5 }),
       });
 
-      const data = await r.json();
+      const data = await res.json();
 
-      if (!r.ok) {
+      if (!res.ok) {
         setErr(data?.error || "Failed to generate questions");
         return;
       }
@@ -63,18 +64,13 @@ export default function PracticePage() {
   }
 
   function choose(index: number, answer: "A" | "B" | "C" | "D") {
-    if (submitted) return;
+    if (checked) return;
     setSelected((prev) => ({ ...prev, [index]: answer }));
   }
 
-  function submitAnswers() {
-    setSubmitted(true);
+  function checkAll() {
+    setChecked(true);
   }
-
-  const answeredCount = Object.values(selected).filter(Boolean).length;
-  const score = submitted
-    ? questions.reduce((sum, q, i) => sum + (selected[i] === q.answer ? 1 : 0), 0)
-    : 0;
 
   return (
     <main
@@ -93,10 +89,10 @@ export default function PracticePage() {
             display: "inline-flex",
             alignItems: "center",
             gap: 8,
-            marginBottom: 24,
             textDecoration: "none",
             color: "#fff",
             fontWeight: 800,
+            marginBottom: 24,
           }}
         >
           <span style={{ fontSize: 20 }}>←</span>
@@ -108,7 +104,8 @@ export default function PracticePage() {
         </h1>
 
         <p style={{ color: "#d6d6d6", marginBottom: 24, lineHeight: 1.5 }}>
-          Generate 5 AP Gov MCQs at a time and check them all at once.
+          Generate AP Gov multiple-choice questions using realistic scenarios
+          and exam-style reasoning.
         </p>
 
         <div
@@ -155,9 +152,9 @@ export default function PracticePage() {
             {loading ? "Generating..." : "Generate 5 Questions"}
           </button>
 
-          {questions.length > 0 && !submitted && (
+          {questions.length > 0 && !checked && (
             <button
-              onClick={submitAnswers}
+              onClick={checkAll}
               disabled={answeredCount !== questions.length}
               style={{
                 padding: "10px 16px",
@@ -189,13 +186,13 @@ export default function PracticePage() {
           </div>
         )}
 
-        {submitted && questions.length > 0 && (
+        {checked && questions.length > 0 && (
           <div
             style={{
-              marginBottom: 20,
+              marginBottom: 22,
               padding: 18,
               borderRadius: 16,
-              border: "1px solid rgba(255,255,255,0.14)",
+              border: "1px solid #333",
               background: "#0a0a0a",
               fontWeight: 900,
               fontSize: 22,
@@ -213,11 +210,11 @@ export default function PracticePage() {
             <div
               key={index}
               style={{
+                marginTop: 22,
                 border: "1px solid rgba(255,255,255,0.14)",
                 borderRadius: 18,
                 padding: 20,
                 background: "rgba(255,255,255,0.04)",
-                marginBottom: 20,
               }}
             >
               <div style={{ fontSize: 18, fontWeight: 900, marginBottom: 14 }}>
@@ -231,8 +228,8 @@ export default function PracticePage() {
               <div style={{ display: "grid", gap: 10 }}>
                 {(["A", "B", "C", "D"] as const).map((key) => {
                   const isSelected = selectedAnswer === key;
-                  const showCorrect = submitted && q.answer === key;
-                  const showWrong = submitted && isSelected && q.answer !== key;
+                  const showCorrect = checked && q.answer === key;
+                  const showWrong = checked && isSelected && q.answer !== key;
 
                   return (
                     <button
@@ -246,12 +243,12 @@ export default function PracticePage() {
                         background: isSelected ? "#fff" : "#111",
                         color: isSelected ? "#000" : "#fff",
                         border: showCorrect
-                          ? "2px solid rgba(110,255,170,0.8)"
+                          ? "2px solid rgba(0,255,0,0.65)"
                           : showWrong
-                          ? "2px solid rgba(255,120,120,0.8)"
+                          ? "2px solid rgba(255,0,0,0.65)"
                           : "1px solid rgba(255,255,255,0.14)",
                         borderRadius: 12,
-                        cursor: submitted ? "default" : "pointer",
+                        cursor: checked ? "default" : "pointer",
                         lineHeight: 1.5,
                       }}
                     >
@@ -261,22 +258,22 @@ export default function PracticePage() {
                 })}
               </div>
 
-              {submitted && (
+              {checked && (
                 <div
                   style={{
-                    marginTop: 18,
+                    marginTop: 20,
                     padding: 16,
                     borderRadius: 14,
                     border: correct
-                      ? "1px solid rgba(110,255,170,0.75)"
-                      : "1px solid rgba(255,120,120,0.75)",
+                      ? "1px solid rgba(0,255,0,0.4)"
+                      : "1px solid rgba(255,0,0,0.4)",
                     background: correct
-                      ? "rgba(110,255,170,0.08)"
-                      : "rgba(255,120,120,0.08)",
+                      ? "rgba(0,255,0,0.07)"
+                      : "rgba(255,0,0,0.07)",
                   }}
                 >
                   <strong>
-                    {correct ? "✅ Correct" : "❌ Incorrect"} (Correct: {q.answer})
+                    {correct ? "Correct" : "Incorrect"} (Correct: {q.answer})
                   </strong>
                   <p style={{ marginTop: 10, lineHeight: 1.6 }}>{q.explanation}</p>
                 </div>

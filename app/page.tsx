@@ -59,15 +59,15 @@ export default function HomePage() {
             desc="MCQ practice, FRQ grading, and timed mini sections."
             href="/gov"
             pill="Live Now"
-            sublinks={[{ label: "Enter →", href: "/gov" }]}
+            sublinks={[{ label: "Enter", href: "/gov" }]}
           />
 
           <SubjectCard
             title="AP Microeconomics"
-            desc="Graphs, FRQs, MCQs, and targeted review by unit."
+            desc="Practice MCQs and build toward full Micro tools."
             href="/micro"
-            pill="New"
-            sublinks={[{ label: "Enter →", href: "/micro" }]}
+            pill="Live Now"
+            sublinks={[{ label: "Enter", href: "/micro" }]}
           />
 
           <ComingSoonCard

@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 
 type Mcq = {
-  subject: "gov" | "micro";
+  subject?: string;
   unit: string;
   prompt: string;
   choices: { A: string; B: string; C: string; D: string };
@@ -73,10 +73,9 @@ function safeParseJsonObject(text: string): any | null {
   return null;
 }
 
-function isValidMcq(q: any) {
+function isValidQuestion(q: any) {
   return (
     q &&
-    (q.subject === "gov" || q.subject === "micro") &&
     typeof q.unit === "string" &&
     typeof q.prompt === "string" &&
     q.choices &&
@@ -93,18 +92,18 @@ export async function POST(req: Request) {
   try {
     const body = (await req.json()) as {
       unit?: string;
-      subject?: "gov" | "micro";
+      subject?: string;
       count?: number;
     };
 
+    const unit = body.unit ?? "1";
     const subject = body.subject ?? "gov";
-    const unit = body.unit ?? "any";
-    const count = Math.max(5, Math.min(Number(body.count ?? 5), 10));
+    const count = Math.max(5, Math.min(body.count ?? 5, 10));
 
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
-        { error: "Missing OPENAI_API_KEY in environment variables" },
+        { error: "Missing OPENAI_API_KEY in .env.local" },
         { status: 500 }
       );
     }
@@ -118,32 +117,27 @@ You are an AP Microeconomics exam question writer.
 Generate EXACTLY ${count} high-quality AP Microeconomics multiple-choice questions.
 
 Requirements:
-- Must be application-based, not just vocabulary definitions
+- Must be application-based, not just definitions
 - Use realistic economic scenarios
-- Test reasoning about incentives, costs, revenue, profit, elasticity, policy, market structure, or efficiency
-- Feel like real AP Micro questions, not basic quizzes
-- Use plausible distractors
+- Test reasoning involving incentives, costs, revenue, profit, market structure, policy effects, or elasticity
+- Make them feel like real AP Micro questions
 
 Topics may include:
-- basic economic concepts
 - supply and demand
 - elasticity
-- consumer and producer surplus
 - costs and production
 - revenue and profit
 - perfect competition
-- monopoly
-- monopolistic competition
-- oligopoly
+- monopoly / oligopoly / monopolistic competition
 - factor markets
-- externalities and government intervention
+- externalities and government policy
 
-Return ONLY a valid JSON object with this EXACT structure:
+Return ONLY a valid JSON OBJECT with this EXACT structure:
 {
   "questions": [
     {
       "subject": "micro",
-      "unit": "${unit}",
+      "unit": "string",
       "prompt": "string",
       "choices": {
         "A": "string",
@@ -159,8 +153,8 @@ Return ONLY a valid JSON object with this EXACT structure:
 
 Rules:
 - Return EXACTLY ${count} questions
-- No markdown
-- No extra text
+- Do NOT use markdown
+- Do NOT include extra text
 - JSON ONLY
 `.trim();
     } else {
@@ -170,27 +164,17 @@ You are an AP U.S. Government & Politics exam question writer.
 Generate EXACTLY ${count} high-quality AP Gov multiple-choice questions.
 
 Requirements:
-- Must be application-based, not just vocabulary definitions
-- Use realistic political, constitutional, institutional, or civic scenarios
-- Feel like real AP Gov MCQs
-- Use plausible distractors
+- Must be realistic for AP Government
+- Must be application-based, not just definitions
+- Use scenarios, institutions, constitutional ideas, civil liberties, elections, parties, courts, and federalism
+- Make them feel like real AP Gov questions
 
-Topics may include:
-- constitutional foundations
-- federalism
-- separation of powers
-- checks and balances
-- Congress, presidency, bureaucracy, courts
-- civil liberties and civil rights
-- ideology and political beliefs
-- elections, parties, participation, media, and interest groups
-
-Return ONLY a valid JSON object with this EXACT structure:
+Return ONLY a valid JSON OBJECT with this EXACT structure:
 {
   "questions": [
     {
       "subject": "gov",
-      "unit": "${unit}",
+      "unit": "string",
       "prompt": "string",
       "choices": {
         "A": "string",
@@ -206,8 +190,8 @@ Return ONLY a valid JSON object with this EXACT structure:
 
 Rules:
 - Return EXACTLY ${count} questions
-- No markdown
-- No extra text
+- Do NOT use markdown
+- Do NOT include extra text
 - JSON ONLY
 `.trim();
     }
@@ -215,7 +199,7 @@ Rules:
     const user =
       subject === "micro"
         ? `Create ${count} challenging AP Microeconomics multiple-choice questions for unit ${unit}.`
-        : `Create ${count} challenging AP Government multiple-choice questions for unit ${unit}.`;
+        : `Create ${count} challenging AP Gov multiple-choice questions for unit ${unit}.`;
 
     const r = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
@@ -235,7 +219,7 @@ Rules:
         reasoning: {
           effort: "low",
         },
-        max_output_tokens: 5000,
+        max_output_tokens: 4500,
       }),
     });
 
@@ -266,19 +250,16 @@ Rules:
       );
     }
 
-    const validQuestions = parsed.questions.filter(isValidMcq).slice(0, count);
+    const questions = parsed.questions.filter(isValidQuestion).slice(0, count);
 
-    if (validQuestions.length < 5) {
+    if (questions.length < 5) {
       return NextResponse.json(
-        {
-          error: "Invalid MCQ format returned",
-          details: { questionCount: validQuestions.length, parsed },
-        },
+        { error: "Not enough valid questions returned", parsed },
         { status: 500 }
       );
     }
 
-    return NextResponse.json({ questions: validQuestions });
+    return NextResponse.json({ questions });
   } catch (e: any) {
     return NextResponse.json(
       { error: "Server error", details: String(e?.message ?? e) },
