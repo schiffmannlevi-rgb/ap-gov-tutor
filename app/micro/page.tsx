@@ -47,8 +47,8 @@ export default function MicroPage() {
             fontSize: 18,
           }}
         >
-          Start with AP Micro multiple-choice practice. FRQ tools and timed
-          sections can be added next.
+          Practice AP Micro with AI-generated multiple-choice questions,
+          free-response prompts, and timed mini sections.
         </p>
       </header>
 
@@ -63,17 +63,21 @@ export default function MicroPage() {
           title="Practice MCQs"
           desc="Generate 5 AP-style Micro multiple-choice questions by unit."
           href="/micro/practice"
-          live
+          badge="Live Now"
         />
 
-        <ComingSoonCard
+        <ToolCard
           title="FRQ Studio"
           desc="Generate and grade AP Micro free-response questions."
+          href="/micro/frq"
+          badge="Live Now"
         />
 
-        <ComingSoonCard
+        <ToolCard
           title="Timed Mini Section"
-          desc="Take a timed AP Micro drill with MCQs and FRQs."
+          desc="Take a timed AP Micro drill with 13 MCQs and 2 FRQs."
+          href="/micro/mini-section"
+          badge="Live Now"
         />
       </div>
     </main>
@@ -84,12 +88,12 @@ function ToolCard({
   title,
   desc,
   href,
-  live,
+  badge,
 }: {
   title: string;
   desc: string;
   href: string;
-  live?: boolean;
+  badge: string;
 }) {
   return (
     <Link
@@ -104,65 +108,25 @@ function ToolCard({
         background: "#000000",
       }}
     >
-      {live ? (
-        <div
-          style={{
-            display: "inline-block",
-            padding: "4px 10px",
-            borderRadius: 999,
-            border: "1px solid #ffffff",
-            fontSize: 12,
-            marginBottom: 10,
-            color: "#e5e5e5",
-          }}
-        >
-          Live Now
-        </div>
-      ) : null}
+      <div
+        style={{
+          display: "inline-block",
+          padding: "4px 10px",
+          borderRadius: 999,
+          border: "1px solid #ffffff",
+          fontSize: 12,
+          marginBottom: 10,
+          color: "#e5e5e5",
+        }}
+      >
+        {badge}
+      </div>
+
       <div style={{ fontSize: 22, fontWeight: 900 }}>{title}</div>
       <div style={{ marginTop: 8, color: "#e5e5e5", lineHeight: 1.5 }}>
         {desc}
       </div>
       <div style={{ marginTop: 14, fontWeight: 800 }}>Open</div>
     </Link>
-  );
-}
-
-function ComingSoonCard({
-  title,
-  desc,
-}: {
-  title: string;
-  desc: string;
-}) {
-  return (
-    <div
-      style={{
-        border: "2px solid rgba(255,255,255,0.45)",
-        borderRadius: 18,
-        padding: 18,
-        background: "#000000",
-        opacity: 0.92,
-      }}
-    >
-      <div
-        style={{
-          display: "inline-block",
-          padding: "4px 10px",
-          borderRadius: 999,
-          border: "1px solid rgba(255,255,255,0.5)",
-          fontSize: 12,
-          marginBottom: 10,
-          color: "#d9d9d9",
-        }}
-      >
-        Coming Soon
-      </div>
-
-      <div style={{ fontSize: 22, fontWeight: 900 }}>{title}</div>
-      <div style={{ marginTop: 8, color: "#e5e5e5", lineHeight: 1.5 }}>
-        {desc}
-      </div>
-    </div>
   );
 }
