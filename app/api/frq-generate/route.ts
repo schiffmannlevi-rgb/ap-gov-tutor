@@ -2,62 +2,49 @@ import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-function extractAnyTextFromResponses(data: any): string {
+function extractOutputText(data: any): string {
   if (typeof data?.output_text === "string" && data.output_text.trim()) {
-    return data.output_text;
+    return data.output_text.trim();
   }
 
-  const out = data?.output;
-  if (Array.isArray(out)) {
-    const chunks: string[] = [];
+  if (Array.isArray(data?.output)) {
+    const parts: string[] = [];
 
-    for (const msg of out) {
-      const content = msg?.content;
-
-      if (Array.isArray(content)) {
-        for (const item of content) {
-          if (typeof item?.text === "string" && item.text.trim()) {
-            chunks.push(item.text);
+    for (const item of data.output) {
+      if (Array.isArray(item?.content)) {
+        for (const c of item.content) {
+          if (typeof c?.text === "string" && c.text.trim()) {
+            parts.push(c.text.trim());
           }
-          if (typeof item?.value === "string" && item.value.trim()) {
-            chunks.push(item.value);
-          }
-          if (typeof item?.content === "string" && item.content.trim()) {
-            chunks.push(item.content);
+          if (typeof c?.value === "string" && c.value.trim()) {
+            parts.push(c.value.trim());
           }
         }
       }
 
-      if (typeof msg?.text === "string" && msg.text.trim()) {
-        chunks.push(msg.text);
-      }
-      if (typeof msg?.content === "string" && msg.content.trim()) {
-        chunks.push(msg.content);
+      if (typeof item?.text === "string" && item.text.trim()) {
+        parts.push(item.text.trim());
       }
     }
 
-    if (chunks.length) return chunks.join("\n").trim();
+    if (parts.length) return parts.join("\n").trim();
   }
 
   return "";
 }
 
-function stripCodeFences(s: string) {
-  return s.replace(/```json\s*/gi, "").replace(/```/g, "").trim();
-}
-
-function safeParseJsonObject(text: string): any | null {
-  const t = stripCodeFences(text);
+function parseJsonSafely(text: string) {
+  const cleaned = text.replace(/```json/gi, "").replace(/```/g, "").trim();
 
   try {
-    return JSON.parse(t);
+    return JSON.parse(cleaned);
   } catch {}
 
-  const first = t.indexOf("{");
-  const last = t.lastIndexOf("}");
+  const first = cleaned.indexOf("{");
+  const last = cleaned.lastIndexOf("}");
   if (first !== -1 && last !== -1 && last > first) {
     try {
-      return JSON.parse(t.slice(first, last + 1));
+      return JSON.parse(cleaned.slice(first, last + 1));
     } catch {}
   }
 
@@ -82,41 +69,41 @@ export async function POST(req: Request) {
         ? `
 You are an AP Microeconomics FRQ writer.
 
-Generate EXACTLY ONE realistic AP Microeconomics FRQ prompt.
+Generate exactly ONE realistic AP Microeconomics FRQ prompt.
 
 Requirements:
 - Make it sound like a real AP Micro FRQ
-- Use applied economics, not just definitions
-- Good topics include supply and demand, market structure, costs, elasticity, externalities, or government intervention
-- Prompt should be clear and answerable in a student practice setting
+- Use applied economics, not just a definition
+- Keep it clear and answerable by a student
+- Focus on topics like supply and demand, elasticity, costs, market structure, or government intervention
 
-Return ONLY valid JSON in this exact format:
+Return ONLY valid JSON:
 {
   "prompt": "string"
 }
-`
+`.trim()
         : `
 You are an AP U.S. Government and Politics FRQ writer.
 
-Generate EXACTLY ONE realistic AP Gov FRQ prompt.
+Generate exactly ONE realistic AP Gov FRQ prompt.
 
 Requirements:
 - Make it sound like a real AP Gov FRQ
-- Use topics like institutions, federalism, civil liberties, political participation, courts, or constitutional reasoning
-- Prompt should be clear and answerable in a student practice setting
+- Keep it clear and answerable by a student
+- Use topics like institutions, federalism, civil liberties, participation, or constitutional reasoning
 
-Return ONLY valid JSON in this exact format:
+Return ONLY valid JSON:
 {
   "prompt": "string"
 }
-`;
+`.trim();
 
     const user =
       subject === "micro"
         ? "Generate one AP Microeconomics FRQ prompt."
         : "Generate one AP U.S. Government and Politics FRQ prompt.";
 
-    const r = await fetch("https://api.openai.com/v1/responses", {
+    const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -132,22 +119,22 @@ Return ONLY valid JSON in this exact format:
           format: { type: "json_object" },
         },
         reasoning: {
-          effort: "low",
+          effort: "minimal",
         },
-        max_output_tokens: 1200,
+        max_output_tokens: 600,
       }),
     });
 
-    const data = await r.json();
+    const data = await response.json();
 
-    if (!r.ok) {
+    if (!response.ok) {
       return NextResponse.json(
         { error: "OpenAI request failed", details: data },
         { status: 500 }
       );
     }
 
-    const outputText = extractAnyTextFromResponses(data);
+    const outputText = extractOutputText(data);
 
     if (!outputText) {
       return NextResponse.json(
@@ -156,11 +143,11 @@ Return ONLY valid JSON in this exact format:
       );
     }
 
-    const parsed = safeParseJsonObject(outputText);
+    const parsed = parseJsonSafely(outputText);
 
     if (!parsed || typeof parsed.prompt !== "string") {
       return NextResponse.json(
-        { error: "Invalid FRQ format returned", parsed, outputText },
+        { error: "Invalid FRQ format returned", outputText, raw: data },
         { status: 500 }
       );
     }
