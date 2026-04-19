@@ -279,7 +279,7 @@ export default function MicroPracticePage() {
                   }}
                 >
                   <strong>
-                    {correct ? "✅ Correct" : "❌ Incorrect"} (Correct: {q.answer})
+                    {correct ? "Correct" : "Incorrect"} (Correct: {q.answer})
                   </strong>
                   <p style={{ marginTop: 10, lineHeight: 1.6 }}>{q.explanation}</p>
                 </div>
