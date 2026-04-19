@@ -18,8 +18,12 @@ function extractOutputText(data: any): string | null {
       if (!Array.isArray(content)) continue;
 
       for (const item of content) {
-        if (typeof item?.text === "string" && item.text.trim()) chunks.push(item.text);
-        if (typeof item?.value === "string" && item.value.trim()) chunks.push(item.value);
+        if (typeof item?.text === "string" && item.text.trim()) {
+          chunks.push(item.text);
+        }
+        if (typeof item?.value === "string" && item.value.trim()) {
+          chunks.push(item.value);
+        }
       }
     }
     if (chunks.length) return chunks.join("\n");
@@ -30,6 +34,7 @@ function extractOutputText(data: any): string | null {
 
 function safeParseJson(text: string): any {
   let t = text.trim();
+
   t = t.replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
 
   const firstBrace = t.indexOf("{");
@@ -46,21 +51,30 @@ export async function POST(req: Request) {
     const body = (await req.json()) as GradeRequest;
 
     if (!body?.prompt || !body?.response) {
-      return NextResponse.json({ error: "Missing prompt or response" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing prompt or response" },
+        { status: 400 }
+      );
     }
 
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ error: "OPENAI_API_KEY is not set in .env.local" }, { status: 500 });
+      return NextResponse.json(
+        { error: "OPENAI_API_KEY is not set in .env.local" },
+        { status: 500 }
+      );
     }
 
     const system = `
-You are an AP U.S. Government FRQ grader.
+You are an AP free-response grader.
+
+Your job is to grade the student response like a strict but fair AP reader.
 
 IMPORTANT RULES:
-- Do NOT include any reasoning or step-by-step thinking.
-- Return ONLY valid JSON (no markdown, no backticks).
-- Be strict but fair. Provide actionable feedback.
+- Do NOT write a model rewrite.
+- Do NOT include chain-of-thought or hidden reasoning.
+- Focus on scoring and actionable rubric-based feedback.
+- Return ONLY valid JSON.
 `;
 
     const user = `
@@ -70,7 +84,7 @@ ${body.prompt}
 STUDENT RESPONSE:
 ${body.response}
 
-Return JSON with EXACT keys:
+Return JSON with EXACTLY this shape:
 {
   "overall_score_0_to_6": number,
   "breakdown": {
@@ -79,11 +93,23 @@ Return JSON with EXACT keys:
     "reasoning_0_to_2": number,
     "accuracy_precision_0_to_1": number
   },
-  "what_was_done_well": string[],
-  "what_to_improve": string[],
-  "missing_or_incorrect": string[],
-  "rewrite_suggestion": string
+  "what_was_done_well": ["string"],
+  "what_to_improve": ["string"],
+  "missing_or_incorrect": ["string"]
 }
+
+Grading expectations:
+- thesis_claim_0_to_1: clear defensible claim if applicable
+- evidence_0_to_2: relevant and specific evidence
+- reasoning_0_to_2: explanation, linkage, analysis
+- accuracy_precision_0_to_1: factual accuracy and precision
+
+Feedback rules:
+- "what_was_done_well" should be short and specific
+- "what_to_improve" should be short, actionable, and realistic
+- "missing_or_incorrect" should identify specific missing content, vague reasoning, or incorrect claims
+- No rewrite suggestion
+- No extra keys
 `;
 
     const r = await fetch("https://api.openai.com/v1/responses", {
@@ -98,26 +124,23 @@ Return JSON with EXACT keys:
           { role: "system", content: system },
           { role: "user", content: user },
         ],
-
-        // Force structured JSON output
         text: { format: { type: "json_object" } },
-
-        // KEY FIXES:
-        // Give it more room to finish + reduce reasoning burn.
-        max_output_tokens: 2500,
         reasoning: { effort: "low" },
-
+        max_output_tokens: 2200,
       }),
     });
 
     if (!r.ok) {
       const errText = await r.text();
-      return NextResponse.json({ error: "OpenAI request failed", details: errText }, { status: 500 });
+      return NextResponse.json(
+        { error: "OpenAI request failed", details: errText },
+        { status: 500 }
+      );
     }
 
     const data = await r.json();
-
     const outputText = extractOutputText(data);
+
     if (!outputText) {
       return NextResponse.json(
         { error: "No output text returned from model", raw: data },

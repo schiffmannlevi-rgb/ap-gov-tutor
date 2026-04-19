@@ -14,22 +14,20 @@ type FrqResult = {
   what_was_done_well?: string[];
   what_to_improve?: string[];
   missing_or_incorrect?: string[];
-  rewrite_suggestion?: string;
 };
 
 export default function MicroFrqPage() {
   const [prompt, setPrompt] = useState("");
   const [response, setResponse] = useState("");
+  const [result, setResult] = useState<FrqResult | null>(null);
   const [loadingPrompt, setLoadingPrompt] = useState(false);
   const [loadingGrade, setLoadingGrade] = useState(false);
   const [error, setError] = useState("");
-  const [result, setResult] = useState<FrqResult | null>(null);
 
   async function generatePrompt() {
     setLoadingPrompt(true);
     setError("");
     setResult(null);
-    setResponse("");
 
     try {
       const res = await fetch("/api/frq-generate", {
@@ -37,9 +35,7 @@ export default function MicroFrqPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          subject: "micro",
-        }),
+        body: JSON.stringify({ subject: "micro" }),
       });
 
       const data = await res.json();
@@ -79,7 +75,7 @@ export default function MicroFrqPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data?.error || "Failed to grade FRQ");
+        setError(data?.error || "Failed to grade");
         return;
       }
 
@@ -101,7 +97,7 @@ export default function MicroFrqPage() {
         fontFamily: "system-ui",
       }}
     >
-      <div style={{ maxWidth: 980, margin: "0 auto" }}>
+      <div style={{ maxWidth: 950, margin: "0 auto" }}>
         <Link
           href="/micro"
           style={{
@@ -118,97 +114,82 @@ export default function MicroFrqPage() {
           <span>Back</span>
         </Link>
 
-        <h1 style={{ fontSize: 42, marginBottom: 8, fontWeight: 900 }}>
+        <h1 style={{ fontSize: 42, marginTop: 10, fontWeight: 900 }}>
           AP Micro FRQ Studio
         </h1>
 
-        <p style={{ color: "#d6d6d6", marginBottom: 24, lineHeight: 1.5 }}>
-          Generate AP Micro free-response prompts and get AI grading with feedback.
+        <p style={{ color: "#ccc", marginBottom: 20 }}>
+          Generate a prompt, write your response, and get rubric-style scoring.
         </p>
 
-        <div style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
-          <button
-            onClick={generatePrompt}
-            disabled={loadingPrompt}
-            style={{
-              padding: "10px 16px",
-              borderRadius: 10,
-              border: "1px solid #fff",
-              background: "#fff",
-              color: "#000",
-              fontWeight: 800,
-              cursor: loadingPrompt ? "not-allowed" : "pointer",
-            }}
-          >
-            {loadingPrompt ? "Generating..." : "Generate FRQ Prompt"}
-          </button>
+        <button
+          onClick={generatePrompt}
+          style={{
+            padding: "10px 16px",
+            borderRadius: 10,
+            border: "1px solid #fff",
+            background: "#fff",
+            color: "#000",
+            fontWeight: 800,
+            marginBottom: 20,
+            cursor: loadingPrompt ? "not-allowed" : "pointer",
+          }}
+        >
+          {loadingPrompt ? "Generating..." : "Generate Prompt"}
+        </button>
 
-          <button
-            onClick={gradeResponse}
-            disabled={!prompt || !response.trim() || loadingGrade}
-            style={{
-              padding: "10px 16px",
-              borderRadius: 10,
-              border: "1px solid #fff",
-              background: !prompt || !response.trim() ? "#333" : "#fff",
-              color: !prompt || !response.trim() ? "#bbb" : "#000",
-              fontWeight: 800,
-              cursor: !prompt || !response.trim() || loadingGrade ? "not-allowed" : "pointer",
-            }}
-          >
-            {loadingGrade ? "Grading..." : "Grade Response"}
-          </button>
+        <div
+          style={{
+            border: "1px solid #333",
+            borderRadius: 14,
+            padding: 16,
+            marginBottom: 20,
+            background: "#111",
+          }}
+        >
+          <strong>Prompt:</strong>
+          <div style={{ marginTop: 10, lineHeight: 1.6 }}>
+            {prompt || "Click 'Generate Prompt' to begin."}
+          </div>
         </div>
-
-        {error && (
-          <div
-            style={{
-              marginBottom: 20,
-              padding: 14,
-              borderRadius: 12,
-              border: "1px solid rgba(255,80,80,0.5)",
-              background: "rgba(255,80,80,0.12)",
-              color: "#ffd4d4",
-            }}
-          >
-            {error}
-          </div>
-        )}
-
-        {prompt && (
-          <div
-            style={{
-              border: "1px solid rgba(255,255,255,0.14)",
-              borderRadius: 18,
-              padding: 20,
-              background: "rgba(255,255,255,0.04)",
-              marginBottom: 20,
-            }}
-          >
-            <div style={{ fontSize: 18, fontWeight: 900, marginBottom: 12 }}>
-              Prompt
-            </div>
-            <div style={{ lineHeight: 1.6, fontSize: 18 }}>{prompt}</div>
-          </div>
-        )}
 
         <textarea
           value={response}
           onChange={(e) => setResponse(e.target.value)}
+          placeholder="Write your response here..."
           rows={10}
-          placeholder="Write your AP Micro FRQ response here..."
           style={{
             width: "100%",
-            padding: 16,
-            borderRadius: 14,
-            border: "1px solid rgba(255,255,255,0.14)",
+            padding: 14,
+            borderRadius: 12,
+            border: "1px solid #333",
             background: "#111",
             color: "#fff",
+            marginBottom: 20,
             fontSize: 16,
             lineHeight: 1.5,
-            resize: "vertical",
           }}
         />
+
+        <button
+          onClick={gradeResponse}
+          disabled={!prompt || !response}
+          style={{
+            padding: "10px 16px",
+            borderRadius: 10,
+            border: "1px solid #fff",
+            background: !prompt || !response ? "#333" : "#fff",
+            color: !prompt || !response ? "#999" : "#000",
+            fontWeight: 800,
+            cursor: !prompt || !response || loadingGrade ? "not-allowed" : "pointer",
+          }}
+        >
+          {loadingGrade ? "Grading..." : "Grade Response"}
+        </button>
+
+        {error && (
+          <div style={{ marginTop: 20, color: "#ffb4b4" }}>{error}</div>
+        )}
 
         {result && (
           <div
@@ -224,37 +205,70 @@ export default function MicroFrqPage() {
               Score: {result.overall_score_0_to_6}/6
             </div>
 
-            {result.what_was_done_well?.length ? (
-              <div style={{ marginBottom: 14 }}>
-                <div style={{ fontWeight: 800, marginBottom: 8 }}>What you did well</div>
-                <ul style={{ margin: 0, paddingLeft: 20, lineHeight: 1.6 }}>
-                  {result.what_was_done_well.map((item, i) => (
-                    <li key={i}>{item}</li>
-                  ))}
-                </ul>
+            {result.breakdown && (
+              <div
+                style={{
+                  marginTop: 14,
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                  gap: 10,
+                }}
+              >
+                <ScoreCard
+                  title="Thesis / Claim"
+                  value={`${result.breakdown.thesis_claim_0_to_1 ?? 0}/1`}
+                />
+                <ScoreCard
+                  title="Evidence"
+                  value={`${result.breakdown.evidence_0_to_2 ?? 0}/2`}
+                />
+                <ScoreCard
+                  title="Reasoning"
+                  value={`${result.breakdown.reasoning_0_to_2 ?? 0}/2`}
+                />
+                <ScoreCard
+                  title="Accuracy / Precision"
+                  value={`${result.breakdown.accuracy_precision_0_to_1 ?? 0}/1`}
+                />
               </div>
-            ) : null}
+            )}
 
-            {result.what_to_improve?.length ? (
-              <div style={{ marginBottom: 14 }}>
-                <div style={{ fontWeight: 800, marginBottom: 8 }}>What to improve</div>
-                <ul style={{ margin: 0, paddingLeft: 20, lineHeight: 1.6 }}>
-                  {result.what_to_improve.map((item, i) => (
-                    <li key={i}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-
-            {result.rewrite_suggestion ? (
-              <div>
-                <div style={{ fontWeight: 800, marginBottom: 8 }}>Rewrite suggestion</div>
-                <div style={{ lineHeight: 1.6 }}>{result.rewrite_suggestion}</div>
-              </div>
-            ) : null}
+            <Section title="What you did well" items={result.what_was_done_well} />
+            <Section title="What to improve" items={result.what_to_improve} />
+            <Section title="Missing or incorrect" items={result.missing_or_incorrect} />
           </div>
         )}
       </div>
     </main>
+  );
+}
+
+function ScoreCard({ title, value }: { title: string; value: string }) {
+  return (
+    <div
+      style={{
+        border: "1px solid rgba(255,255,255,0.2)",
+        borderRadius: 12,
+        padding: 12,
+        background: "#0b0b0b",
+      }}
+    >
+      <div style={{ fontSize: 13, color: "#cfcfcf", marginBottom: 6 }}>{title}</div>
+      <div style={{ fontSize: 22, fontWeight: 900 }}>{value}</div>
+    </div>
+  );
+}
+
+function Section({ title, items }: { title: string; items?: string[] }) {
+  if (!items || items.length === 0) return null;
+  return (
+    <div style={{ marginTop: 18 }}>
+      <div style={{ fontWeight: 900, marginBottom: 8 }}>{title}</div>
+      <ul style={{ margin: 0, paddingLeft: 22, color: "#e5e5e5", lineHeight: 1.6 }}>
+        {items.map((x, i) => (
+          <li key={i}>{x}</li>
+        ))}
+      </ul>
+    </div>
   );
 }

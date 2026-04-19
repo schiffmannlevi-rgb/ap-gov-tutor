@@ -3,13 +3,26 @@
 import Link from "next/link";
 import { useState } from "react";
 
+type FrqResult = {
+  overall_score_0_to_6: number;
+  breakdown?: {
+    thesis_claim_0_to_1?: number;
+    evidence_0_to_2?: number;
+    reasoning_0_to_2?: number;
+    accuracy_precision_0_to_1?: number;
+  };
+  what_was_done_well?: string[];
+  what_to_improve?: string[];
+  missing_or_incorrect?: string[];
+};
+
 export default function FrqPage() {
   const [prompt, setPrompt] = useState(
-    "Develop an argument that explains whether the power of the presidency has increased over time. Use at least one piece of evidence (e.g., an institution, policy action, or Supreme Court case)."
+    "Develop an argument that explains whether the power of the presidency has increased over time. Use at least one piece of evidence such as an institution, policy action, or Supreme Court case."
   );
   const [studentResponse, setStudentResponse] = useState("");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<FrqResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function grade() {
@@ -27,12 +40,12 @@ export default function FrqPage() {
         }),
       });
 
+      const data = await r.json();
+
       if (!r.ok) {
-        const text = await r.text();
-        throw new Error(text);
+        throw new Error(data?.error || "Failed to grade FRQ");
       }
 
-      const data = await r.json();
       setResult(data);
     } catch (e: any) {
       setError(String(e?.message ?? e));
@@ -49,22 +62,21 @@ export default function FrqPage() {
         backgroundColor: "#000000",
         color: "#ffffff",
         minHeight: "100vh",
-        maxWidth: 900,
+        maxWidth: 950,
         margin: "0 auto",
       }}
     >
-      <Link href="/" style={{ textDecoration: "none", color: "#ffffff" }}>
-        ← Home
+      <Link href="/gov" style={{ textDecoration: "none", color: "#ffffff" }}>
+        ← Back
       </Link>
 
       <h1 style={{ fontSize: 36, marginTop: 20 }}>FRQ Studio</h1>
       <p style={{ color: "#e5e5e5" }}>
-        Paste a prompt + your answer. Click <b>Grade with AI</b> for rubric-based
-        feedback.
+        Write a response and get rubric-style scoring with clearer feedback.
       </p>
 
       <div style={{ display: "grid", gap: 14, marginTop: 18 }}>
-        <label style={{ fontWeight: 700 }}>FRQ Prompt</label>
+        <label style={{ fontWeight: 700 }}>Prompt</label>
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
@@ -138,33 +150,41 @@ export default function FrqPage() {
               border: "2px solid #ffffff",
             }}
           >
-            <div style={{ fontSize: 20, fontWeight: 900 }}>
-              Overall Score: {result.overall_score_0_to_6}/6
+            <div style={{ fontSize: 22, fontWeight: 900 }}>
+              Score: {result.overall_score_0_to_6}/6
             </div>
 
             {result.breakdown && (
-              <div style={{ marginTop: 10, color: "#e5e5e5" }}>
-                <div>Thesis/Claim: {result.breakdown.thesis_claim_0_to_1}/1</div>
-                <div>Evidence: {result.breakdown.evidence_0_to_2}/2</div>
-                <div>Reasoning: {result.breakdown.reasoning_0_to_2}/2</div>
-                <div>
-                  Accuracy/Precision: {result.breakdown.accuracy_precision_0_to_1}/1
-                </div>
+              <div
+                style={{
+                  marginTop: 14,
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                  gap: 10,
+                }}
+              >
+                <ScoreCard
+                  title="Thesis / Claim"
+                  value={`${result.breakdown.thesis_claim_0_to_1 ?? 0}/1`}
+                />
+                <ScoreCard
+                  title="Evidence"
+                  value={`${result.breakdown.evidence_0_to_2 ?? 0}/2`}
+                />
+                <ScoreCard
+                  title="Reasoning"
+                  value={`${result.breakdown.reasoning_0_to_2 ?? 0}/2`}
+                />
+                <ScoreCard
+                  title="Accuracy / Precision"
+                  value={`${result.breakdown.accuracy_precision_0_to_1 ?? 0}/1`}
+                />
               </div>
             )}
 
             <Section title="What you did well" items={result.what_was_done_well} />
             <Section title="What to improve" items={result.what_to_improve} />
-            <Section title="Missing / incorrect" items={result.missing_or_incorrect} />
-
-            {result.rewrite_suggestion && (
-              <div style={{ marginTop: 14 }}>
-                <div style={{ fontWeight: 900 }}>Rewrite suggestion</div>
-                <div style={{ color: "#e5e5e5", whiteSpace: "pre-wrap" }}>
-                  {result.rewrite_suggestion}
-                </div>
-              </div>
-            )}
+            <Section title="Missing or incorrect" items={result.missing_or_incorrect} />
           </div>
         )}
       </div>
@@ -172,12 +192,28 @@ export default function FrqPage() {
   );
 }
 
+function ScoreCard({ title, value }: { title: string; value: string }) {
+  return (
+    <div
+      style={{
+        border: "1px solid rgba(255,255,255,0.2)",
+        borderRadius: 12,
+        padding: 12,
+        background: "#0b0b0b",
+      }}
+    >
+      <div style={{ fontSize: 13, color: "#cfcfcf", marginBottom: 6 }}>{title}</div>
+      <div style={{ fontSize: 22, fontWeight: 900 }}>{value}</div>
+    </div>
+  );
+}
+
 function Section({ title, items }: { title: string; items?: string[] }) {
   if (!items || items.length === 0) return null;
   return (
-    <div style={{ marginTop: 14 }}>
-      <div style={{ fontWeight: 900 }}>{title}</div>
-      <ul style={{ marginTop: 6, color: "#e5e5e5" }}>
+    <div style={{ marginTop: 18 }}>
+      <div style={{ fontWeight: 900, marginBottom: 8 }}>{title}</div>
+      <ul style={{ margin: 0, paddingLeft: 22, color: "#e5e5e5", lineHeight: 1.6 }}>
         {items.map((x, i) => (
           <li key={i}>{x}</li>
         ))}
