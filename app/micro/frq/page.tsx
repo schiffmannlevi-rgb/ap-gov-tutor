@@ -140,36 +140,47 @@ export default function MicroFrqPage() {
 
         <div
           style={{
-            border: "1px solid #333",
-            borderRadius: 14,
-            padding: 16,
-            marginBottom: 20,
+            border: "1px solid rgba(255,255,255,0.14)",
+            borderRadius: 16,
+            padding: 18,
             background: "#111",
+            marginBottom: 18,
           }}
         >
-          <strong>Prompt:</strong>
-          <div style={{ marginTop: 10, lineHeight: 1.6 }}>
-            {prompt || "Click 'Generate Prompt' to begin."}
+          <div style={{ fontWeight: 900, marginBottom: 10 }}>Prompt</div>
+          <div style={{ lineHeight: 1.6, color: "#f1f1f1" }}>
+            {prompt || "Click “Generate Prompt” to load an AP Micro FRQ."}
           </div>
         </div>
 
-        <textarea
-          value={response}
-          onChange={(e) => setResponse(e.target.value)}
-          placeholder="Write your response here..."
-          rows={10}
+        <div
           style={{
-            width: "100%",
-            padding: 14,
-            borderRadius: 12,
-            border: "1px solid #333",
+            border: "1px solid rgba(255,255,255,0.14)",
+            borderRadius: 16,
+            padding: 18,
             background: "#111",
-            color: "#fff",
-            marginBottom: 20,
-            fontSize: 16,
-            lineHeight: 1.5,
+            marginBottom: 18,
           }}
-        />
+        >
+          <div style={{ fontWeight: 900, marginBottom: 10 }}>Your Response</div>
+          <textarea
+            value={response}
+            onChange={(e) => setResponse(e.target.value)}
+            placeholder="Write your response here..."
+            rows={10}
+            style={{
+              width: "100%",
+              padding: 14,
+              borderRadius: 12,
+              border: "1px solid #333",
+              background: "#0b0b0b",
+              color: "#fff",
+              fontSize: 16,
+              lineHeight: 1.5,
+              resize: "vertical",
+            }}
+          />
+        </div>
 
         <button
           onClick={gradeResponse}
