@@ -54,7 +54,7 @@ export default function MicroFrqPage() {
   }
 
   async function gradeResponse() {
-    if (!prompt || !response.trim()) return;
+    if (!prompt.trim() || !response.trim()) return;
 
     setLoadingGrade(true);
     setError("");
@@ -110,18 +110,18 @@ export default function MicroFrqPage() {
             marginBottom: 24,
           }}
         >
-          <span style={{ fontSize: 20 }}>←</span>
-          <span>Back</span>
+          ← Back
         </Link>
 
-        <h1 style={{ fontSize: 42, marginTop: 10, fontWeight: 900 }}>
+        <h1 style={{ fontSize: 42, fontWeight: 900 }}>
           AP Micro FRQ Studio
         </h1>
 
         <p style={{ color: "#ccc", marginBottom: 20 }}>
-          Generate a prompt, write your response, and get rubric-style scoring.
+          Write your own prompt or generate one, then get rubric-based grading.
         </p>
 
+        {/* BUTTON */}
         <button
           onClick={generatePrompt}
           style={{
@@ -132,12 +132,12 @@ export default function MicroFrqPage() {
             color: "#000",
             fontWeight: 800,
             marginBottom: 20,
-            cursor: loadingPrompt ? "not-allowed" : "pointer",
           }}
         >
           {loadingPrompt ? "Generating..." : "Generate Prompt"}
         </button>
 
+        {/* PROMPT INPUT */}
         <div
           style={{
             border: "1px solid rgba(255,255,255,0.14)",
@@ -148,11 +148,27 @@ export default function MicroFrqPage() {
           }}
         >
           <div style={{ fontWeight: 900, marginBottom: 10 }}>Prompt</div>
-          <div style={{ lineHeight: 1.6, color: "#f1f1f1" }}>
-            {prompt || "Click “Generate Prompt” to load an AP Micro FRQ."}
-          </div>
+
+          <textarea
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="Write or generate an AP Micro FRQ prompt..."
+            rows={5}
+            style={{
+              width: "100%",
+              padding: 14,
+              borderRadius: 12,
+              border: "1px solid #333",
+              background: "#0b0b0b",
+              color: "#fff",
+              fontSize: 16,
+              lineHeight: 1.5,
+              resize: "vertical",
+            }}
+          />
         </div>
 
+        {/* RESPONSE INPUT */}
         <div
           style={{
             border: "1px solid rgba(255,255,255,0.14)",
@@ -163,6 +179,7 @@ export default function MicroFrqPage() {
           }}
         >
           <div style={{ fontWeight: 900, marginBottom: 10 }}>Your Response</div>
+
           <textarea
             value={response}
             onChange={(e) => setResponse(e.target.value)}
@@ -182,26 +199,28 @@ export default function MicroFrqPage() {
           />
         </div>
 
+        {/* GRADE BUTTON */}
         <button
           onClick={gradeResponse}
-          disabled={!prompt || !response}
+          disabled={!prompt.trim() || !response.trim()}
           style={{
             padding: "10px 16px",
             borderRadius: 10,
             border: "1px solid #fff",
-            background: !prompt || !response ? "#333" : "#fff",
-            color: !prompt || !response ? "#999" : "#000",
+            background: !prompt.trim() || !response.trim() ? "#333" : "#fff",
+            color: !prompt.trim() || !response.trim() ? "#999" : "#000",
             fontWeight: 800,
-            cursor: !prompt || !response || loadingGrade ? "not-allowed" : "pointer",
           }}
         >
           {loadingGrade ? "Grading..." : "Grade Response"}
         </button>
 
+        {/* ERROR */}
         {error && (
           <div style={{ marginTop: 20, color: "#ffb4b4" }}>{error}</div>
         )}
 
+        {/* RESULT */}
         {result && (
           <div
             style={{
@@ -212,7 +231,7 @@ export default function MicroFrqPage() {
               background: "#0a0a0a",
             }}
           >
-            <div style={{ fontWeight: 900, fontSize: 22, marginBottom: 12 }}>
+            <div style={{ fontWeight: 900, fontSize: 22 }}>
               Score: {result.overall_score_0_to_6}/6
             </div>
 
@@ -225,22 +244,10 @@ export default function MicroFrqPage() {
                   gap: 10,
                 }}
               >
-                <ScoreCard
-                  title="Thesis / Claim"
-                  value={`${result.breakdown.thesis_claim_0_to_1 ?? 0}/1`}
-                />
-                <ScoreCard
-                  title="Evidence"
-                  value={`${result.breakdown.evidence_0_to_2 ?? 0}/2`}
-                />
-                <ScoreCard
-                  title="Reasoning"
-                  value={`${result.breakdown.reasoning_0_to_2 ?? 0}/2`}
-                />
-                <ScoreCard
-                  title="Accuracy / Precision"
-                  value={`${result.breakdown.accuracy_precision_0_to_1 ?? 0}/1`}
-                />
+                <ScoreCard title="Thesis" value={`${result.breakdown.thesis_claim_0_to_1 ?? 0}/1`} />
+                <ScoreCard title="Evidence" value={`${result.breakdown.evidence_0_to_2 ?? 0}/2`} />
+                <ScoreCard title="Reasoning" value={`${result.breakdown.reasoning_0_to_2 ?? 0}/2`} />
+                <ScoreCard title="Accuracy" value={`${result.breakdown.accuracy_precision_0_to_1 ?? 0}/1`} />
               </div>
             )}
 
@@ -264,7 +271,7 @@ function ScoreCard({ title, value }: { title: string; value: string }) {
         background: "#0b0b0b",
       }}
     >
-      <div style={{ fontSize: 13, color: "#cfcfcf", marginBottom: 6 }}>{title}</div>
+      <div style={{ fontSize: 13, color: "#cfcfcf" }}>{title}</div>
       <div style={{ fontSize: 22, fontWeight: 900 }}>{value}</div>
     </div>
   );
@@ -274,8 +281,8 @@ function Section({ title, items }: { title: string; items?: string[] }) {
   if (!items || items.length === 0) return null;
   return (
     <div style={{ marginTop: 18 }}>
-      <div style={{ fontWeight: 900, marginBottom: 8 }}>{title}</div>
-      <ul style={{ margin: 0, paddingLeft: 22, color: "#e5e5e5", lineHeight: 1.6 }}>
+      <div style={{ fontWeight: 900 }}>{title}</div>
+      <ul style={{ paddingLeft: 20 }}>
         {items.map((x, i) => (
           <li key={i}>{x}</li>
         ))}
