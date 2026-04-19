@@ -98,7 +98,7 @@ export default function MicroFrqPage() {
         fontFamily: "system-ui",
       }}
     >
-      <div style={{ maxWidth: 950, margin: "0 auto" }}>
+      <div style={{ maxWidth: 980, margin: "0 auto" }}>
         <Link
           href="/micro"
           style={{
@@ -142,14 +142,21 @@ export default function MicroFrqPage() {
         <div
           style={{
             border: "1px solid rgba(255,255,255,0.14)",
-            borderRadius: 16,
+            borderRadius: 18,
             padding: 18,
             background: "#111",
             marginBottom: 18,
           }}
         >
-          <div style={{ fontWeight: 900, marginBottom: 10 }}>Prompt</div>
-          <div style={{ lineHeight: 1.6, color: "#f1f1f1" }}>
+          <div style={{ fontWeight: 900, marginBottom: 10, fontSize: 18 }}>Prompt</div>
+          <div
+            style={{
+              whiteSpace: "pre-wrap",
+              lineHeight: 1.7,
+              color: "#f1f1f1",
+              fontSize: 18,
+            }}
+          >
             {prompt || "Click “Generate Prompt” to load an AP Micro FRQ."}
           </div>
         </div>
@@ -157,13 +164,13 @@ export default function MicroFrqPage() {
         <div
           style={{
             border: "1px solid rgba(255,255,255,0.14)",
-            borderRadius: 16,
+            borderRadius: 18,
             padding: 18,
             background: "#111",
             marginBottom: 18,
           }}
         >
-          <div style={{ fontWeight: 900, marginBottom: 10 }}>Your Response</div>
+          <div style={{ fontWeight: 900, marginBottom: 10, fontSize: 18 }}>Your Response</div>
 
           <textarea
             value={response}
@@ -178,7 +185,7 @@ export default function MicroFrqPage() {
               background: "#0b0b0b",
               color: "#fff",
               fontSize: 16,
-              lineHeight: 1.5,
+              lineHeight: 1.6,
               resize: "vertical",
             }}
           />

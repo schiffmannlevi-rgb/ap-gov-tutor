@@ -72,10 +72,14 @@ You are an AP Microeconomics FRQ writer.
 Generate exactly ONE realistic AP Microeconomics FRQ prompt.
 
 Requirements:
-- Make it sound like a real AP Micro FRQ
-- Use applied economics, not just a definition
-- Keep it clear and answerable by a student
-- Focus on topics like supply and demand, elasticity, costs, market structure, or government intervention
+- Keep it SHORT and readable
+- 3 to 5 parts maximum
+- No giant wall of text
+- Use clear labels like (a), (b), (c)
+- Make it feel like a real AP Micro FRQ
+- Use applied economics, not just definitions
+- Good topics include supply and demand, elasticity, costs, market structure, externalities, or government intervention
+- The total prompt should usually be under 170 words
 
 Return ONLY valid JSON:
 {
@@ -88,9 +92,13 @@ You are an AP U.S. Government and Politics FRQ writer.
 Generate exactly ONE realistic AP Gov FRQ prompt.
 
 Requirements:
-- Make it sound like a real AP Gov FRQ
-- Keep it clear and answerable by a student
-- Use topics like institutions, federalism, civil liberties, participation, or constitutional reasoning
+- Keep it SHORT and readable
+- 3 to 4 parts maximum
+- No giant wall of text
+- Use clear labels like (a), (b), (c), (d)
+- Make it feel like a real AP Gov FRQ
+- Use topics like institutions, federalism, civil liberties, participation, courts, or constitutional reasoning
+- The total prompt should usually be under 170 words
 
 Return ONLY valid JSON:
 {
@@ -100,8 +108,8 @@ Return ONLY valid JSON:
 
     const user =
       subject === "micro"
-        ? "Generate one AP Microeconomics FRQ prompt."
-        : "Generate one AP U.S. Government and Politics FRQ prompt.";
+        ? "Generate one short, readable AP Microeconomics FRQ prompt."
+        : "Generate one short, readable AP U.S. Government and Politics FRQ prompt.";
 
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
@@ -121,7 +129,7 @@ Return ONLY valid JSON:
         reasoning: {
           effort: "minimal",
         },
-        max_output_tokens: 600,
+        max_output_tokens: 500,
       }),
     });
 

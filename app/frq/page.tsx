@@ -88,7 +88,7 @@ export default function FrqPage() {
         backgroundColor: "#000000",
         color: "#ffffff",
         minHeight: "100vh",
-        maxWidth: 950,
+        maxWidth: 980,
         margin: "0 auto",
       }}
     >
@@ -121,14 +121,21 @@ export default function FrqPage() {
       <div
         style={{
           border: "1px solid rgba(255,255,255,0.14)",
-          borderRadius: 16,
+          borderRadius: 18,
           padding: 18,
           background: "#111",
           marginBottom: 18,
         }}
       >
-        <div style={{ fontWeight: 900, marginBottom: 10 }}>Prompt</div>
-        <div style={{ lineHeight: 1.6, color: "#f1f1f1" }}>
+        <div style={{ fontWeight: 900, marginBottom: 10, fontSize: 18 }}>Prompt</div>
+        <div
+          style={{
+            whiteSpace: "pre-wrap",
+            lineHeight: 1.7,
+            color: "#f1f1f1",
+            fontSize: 18,
+          }}
+        >
           {prompt || "Click “Generate Prompt” to load an AP Gov FRQ."}
         </div>
       </div>
@@ -136,13 +143,13 @@ export default function FrqPage() {
       <div
         style={{
           border: "1px solid rgba(255,255,255,0.14)",
-          borderRadius: 16,
+          borderRadius: 18,
           padding: 18,
           background: "#111",
           marginBottom: 18,
         }}
       >
-        <div style={{ fontWeight: 900, marginBottom: 10 }}>Your Response</div>
+        <div style={{ fontWeight: 900, marginBottom: 10, fontSize: 18 }}>Your Response</div>
         <textarea
           value={studentResponse}
           onChange={(e) => setStudentResponse(e.target.value)}
@@ -156,7 +163,7 @@ export default function FrqPage() {
             background: "#0b0b0b",
             color: "#fff",
             fontSize: 16,
-            lineHeight: 1.5,
+            lineHeight: 1.6,
             resize: "vertical",
           }}
         />
@@ -205,7 +212,7 @@ export default function FrqPage() {
       {result && (
         <div
           style={{
-            marginTop: 10,
+            marginTop: 18,
             padding: 16,
             borderRadius: 16,
             border: "2px solid #ffffff",
@@ -224,22 +231,10 @@ export default function FrqPage() {
                 gap: 10,
               }}
             >
-              <ScoreCard
-                title="Thesis / Claim"
-                value={`${result.breakdown.thesis_claim_0_to_1 ?? 0}/1`}
-              />
-              <ScoreCard
-                title="Evidence"
-                value={`${result.breakdown.evidence_0_to_2 ?? 0}/2`}
-              />
-              <ScoreCard
-                title="Reasoning"
-                value={`${result.breakdown.reasoning_0_to_2 ?? 0}/2`}
-              />
-              <ScoreCard
-                title="Accuracy / Precision"
-                value={`${result.breakdown.accuracy_precision_0_to_1 ?? 0}/1`}
-              />
+              <ScoreCard title="Thesis / Claim" value={`${result.breakdown.thesis_claim_0_to_1 ?? 0}/1`} />
+              <ScoreCard title="Evidence" value={`${result.breakdown.evidence_0_to_2 ?? 0}/2`} />
+              <ScoreCard title="Reasoning" value={`${result.breakdown.reasoning_0_to_2 ?? 0}/2`} />
+              <ScoreCard title="Accuracy / Precision" value={`${result.breakdown.accuracy_precision_0_to_1 ?? 0}/1`} />
             </div>
           )}
 
