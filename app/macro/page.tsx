@@ -47,8 +47,8 @@ export default function MacroPage() {
             fontSize: 18,
           }}
         >
-          Practice AP Macro with AI-generated multiple-choice questions and
-          free-response prompts.
+          Practice AP Macro with AI-generated multiple-choice questions,
+          free-response prompts, and timed mini sections.
         </p>
       </header>
 
@@ -73,9 +73,11 @@ export default function MacroPage() {
           badge="Live Now"
         />
 
-        <ComingSoonCard
+        <ToolCard
           title="Timed Mini Section"
-          desc="Take a timed AP Macro drill with MCQs and FRQs."
+          desc="Take a timed AP Macro drill with 13 MCQs and 2 FRQs."
+          href="/macro/mini-section"
+          badge="Live Now"
         />
       </div>
     </main>
@@ -124,47 +126,7 @@ function ToolCard({
       <div style={{ marginTop: 8, color: "#e5e5e5", lineHeight: 1.5 }}>
         {desc}
       </div>
-
       <div style={{ marginTop: 14, fontWeight: 800 }}>Open</div>
     </Link>
-  );
-}
-
-function ComingSoonCard({
-  title,
-  desc,
-}: {
-  title: string;
-  desc: string;
-}) {
-  return (
-    <div
-      style={{
-        border: "2px solid rgba(255,255,255,0.45)",
-        borderRadius: 18,
-        padding: 18,
-        background: "#000000",
-        opacity: 0.92,
-      }}
-    >
-      <div
-        style={{
-          display: "inline-block",
-          padding: "4px 10px",
-          borderRadius: 999,
-          border: "1px solid rgba(255,255,255,0.5)",
-          fontSize: 12,
-          marginBottom: 10,
-          color: "#d9d9d9",
-        }}
-      >
-        Coming Soon
-      </div>
-
-      <div style={{ fontSize: 22, fontWeight: 900 }}>{title}</div>
-      <div style={{ marginTop: 8, color: "#e5e5e5", lineHeight: 1.5 }}>
-        {desc}
-      </div>
-    </div>
   );
 }
