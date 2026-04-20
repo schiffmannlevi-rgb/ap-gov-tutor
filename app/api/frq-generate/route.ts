@@ -64,15 +64,17 @@ export async function POST(req: Request) {
       );
     }
 
-    const system =
-      subject === "micro"
-        ? `
+    let system = "";
+    let user = "";
+
+    if (subject === "micro") {
+      system = `
 You are an AP Microeconomics FRQ writer.
 
 Generate exactly ONE realistic AP Microeconomics FRQ prompt.
 
 Requirements:
-- Keep it SHORT and readable
+- Keep it short and readable
 - 3 to 5 parts maximum
 - No giant wall of text
 - Use clear labels like (a), (b), (c)
@@ -85,14 +87,40 @@ Return ONLY valid JSON:
 {
   "prompt": "string"
 }
-`.trim()
-        : `
+`.trim();
+
+      user = "Generate one short, readable AP Microeconomics FRQ prompt.";
+    } else if (subject === "macro") {
+      system = `
+You are an AP Macroeconomics FRQ writer.
+
+Generate exactly ONE realistic AP Macroeconomics FRQ prompt.
+
+Requirements:
+- Keep it short and readable
+- 3 to 5 parts maximum
+- No giant wall of text
+- Use clear labels like (a), (b), (c)
+- Make it feel like a real AP Macro FRQ
+- Use applied macroeconomics, not just definitions
+- Good topics include GDP, inflation, unemployment, business cycles, AD-AS, fiscal policy, monetary policy, banking, loanable funds, foreign exchange, or international trade
+- The total prompt should usually be under 170 words
+
+Return ONLY valid JSON:
+{
+  "prompt": "string"
+}
+`.trim();
+
+      user = "Generate one short, readable AP Macroeconomics FRQ prompt.";
+    } else {
+      system = `
 You are an AP U.S. Government and Politics FRQ writer.
 
 Generate exactly ONE realistic AP Gov FRQ prompt.
 
 Requirements:
-- Keep it SHORT and readable
+- Keep it short and readable
 - 3 to 4 parts maximum
 - No giant wall of text
 - Use clear labels like (a), (b), (c), (d)
@@ -106,10 +134,8 @@ Return ONLY valid JSON:
 }
 `.trim();
 
-    const user =
-      subject === "micro"
-        ? "Generate one short, readable AP Microeconomics FRQ prompt."
-        : "Generate one short, readable AP U.S. Government and Politics FRQ prompt.";
+      user = "Generate one short, readable AP U.S. Government and Politics FRQ prompt.";
+    }
 
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
