@@ -19,7 +19,7 @@ export default function HomePage() {
         </div>
 
         <h1 style={{ fontSize: 48, margin: "10px 0 10px", fontWeight: 900 }}>
-          Levi's AP Study Hub
+          AP Study Hub
         </h1>
 
         <p
@@ -31,8 +31,7 @@ export default function HomePage() {
           }}
         >
           Practice multiple-choice questions, generate and grade FRQs, and run
-          timed mini sections across your AP classes. AP Government is fully
-          built, and more subjects are being added.
+          timed mini sections across your AP classes.
         </p>
       </header>
 
@@ -64,20 +63,23 @@ export default function HomePage() {
 
           <SubjectCard
             title="AP Microeconomics"
-            desc="Practice MCQs and build toward full Micro tools."
+            desc="Practice MCQs, FRQs, and timed sections."
             href="/micro"
             pill="Live Now"
             sublinks={[{ label: "Enter", href: "/micro" }]}
           />
 
-          <ComingSoonCard
-            title="AP Statistics"
-            desc="MCQs, FRQs, concept review, and timed practice sets."
+          <SubjectCard
+            title="AP Macroeconomics"
+            desc="Practice MCQs and build toward full Macro tools."
+            href="/macro"
+            pill="Live Now"
+            sublinks={[{ label: "Enter", href: "/macro" }]}
           />
 
           <ComingSoonCard
-            title="AP Macroeconomics"
-            desc="National income, inflation, policy, graphs, and FRQ practice."
+            title="AP Statistics"
+            desc="MCQs, FRQs, concept review, and timed practice sets."
           />
 
           <ComingSoonCard

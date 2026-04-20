@@ -122,16 +122,6 @@ Requirements:
 - Test reasoning involving incentives, costs, revenue, profit, market structure, policy effects, or elasticity
 - Make them feel like real AP Micro questions
 
-Topics may include:
-- supply and demand
-- elasticity
-- costs and production
-- revenue and profit
-- perfect competition
-- monopoly / oligopoly / monopolistic competition
-- factor markets
-- externalities and government policy
-
 Return ONLY a valid JSON OBJECT with this EXACT structure:
 {
   "questions": [
@@ -150,12 +140,37 @@ Return ONLY a valid JSON OBJECT with this EXACT structure:
     }
   ]
 }
+`.trim();
+    } else if (subject === "macro") {
+      system = `
+You are an AP Macroeconomics exam question writer.
 
-Rules:
-- Return EXACTLY ${count} questions
-- Do NOT use markdown
-- Do NOT include extra text
-- JSON ONLY
+Generate EXACTLY ${count} high-quality AP Macroeconomics multiple-choice questions.
+
+Requirements:
+- Must be application-based, not just definitions
+- Use realistic macroeconomic scenarios
+- Test reasoning involving GDP, inflation, unemployment, business cycles, AD-AS, fiscal policy, monetary policy, banking, loanable funds, foreign exchange, and international trade
+- Make them feel like real AP Macro questions
+
+Return ONLY a valid JSON OBJECT with this EXACT structure:
+{
+  "questions": [
+    {
+      "subject": "macro",
+      "unit": "string",
+      "prompt": "string",
+      "choices": {
+        "A": "string",
+        "B": "string",
+        "C": "string",
+        "D": "string"
+      },
+      "answer": "A|B|C|D",
+      "explanation": "string"
+    }
+  ]
+}
 `.trim();
     } else {
       system = `
@@ -187,18 +202,14 @@ Return ONLY a valid JSON OBJECT with this EXACT structure:
     }
   ]
 }
-
-Rules:
-- Return EXACTLY ${count} questions
-- Do NOT use markdown
-- Do NOT include extra text
-- JSON ONLY
 `.trim();
     }
 
     const user =
       subject === "micro"
         ? `Create ${count} challenging AP Microeconomics multiple-choice questions for unit ${unit}.`
+        : subject === "macro"
+        ? `Create ${count} challenging AP Macroeconomics multiple-choice questions for unit ${unit}.`
         : `Create ${count} challenging AP Gov multiple-choice questions for unit ${unit}.`;
 
     const r = await fetch("https://api.openai.com/v1/responses", {
