@@ -47,8 +47,8 @@ export default function MacroPage() {
             fontSize: 18,
           }}
         >
-          Practice AP Macro multiple-choice questions using realistic economic
-          scenarios and exam-style reasoning.
+          Practice AP Macro with AI-generated multiple-choice questions and
+          free-response prompts.
         </p>
       </header>
 
@@ -66,14 +66,16 @@ export default function MacroPage() {
           badge="Live Now"
         />
 
-        <ComingSoonCard
+        <ToolCard
           title="FRQ Studio"
           desc="Generate and grade AP Macro free-response questions."
+          href="/macro/frq"
+          badge="Live Now"
         />
 
         <ComingSoonCard
           title="Timed Mini Section"
-          desc="Take a timed AP Macro section with MCQs and FRQs."
+          desc="Take a timed AP Macro drill with MCQs and FRQs."
         />
       </div>
     </main>
