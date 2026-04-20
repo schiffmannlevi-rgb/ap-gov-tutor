@@ -18,6 +18,7 @@ type Frq = {
 
 type MiniSection = {
   scope: string;
+  subject: string;
   mcqs: Mcq[];
   frqs: Frq[];
 };
@@ -110,7 +111,12 @@ function isValidFrq(q: any) {
 
 export async function POST(req: Request) {
   try {
-    const { scope } = (await req.json()) as { scope?: string };
+    const { scope, subject } = (await req.json()) as {
+      scope?: string;
+      subject?: string;
+    };
+
+    const subj = subject ?? "gov";
 
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
@@ -120,18 +126,32 @@ export async function POST(req: Request) {
       );
     }
 
-    const scopeText =
-      scope === "all"
-        ? "All of AP U.S. Government and Politics"
-        : `Unit ${scope} of AP U.S. Government and Politics`;
+    let scopeText = "";
+    if (subj === "micro") {
+      scopeText =
+        scope === "all"
+          ? "All of AP Microeconomics"
+          : `Unit ${scope} of AP Microeconomics`;
+    } else if (subj === "macro") {
+      scopeText =
+        scope === "all"
+          ? "All of AP Macroeconomics"
+          : `Unit ${scope} of AP Macroeconomics`;
+    } else {
+      scopeText =
+        scope === "all"
+          ? "All of AP U.S. Government and Politics"
+          : `Unit ${scope} of AP U.S. Government and Politics`;
+    }
 
     const system = `
-You are an AP U.S. Government & Politics exam writer.
+You are an AP exam writer.
 
 Generate a timed sprint mini section for ${scopeText}.
 
 You MUST return ONLY a valid JSON object with this EXACT structure:
 {
+  "subject": "string",
   "scope": "string",
   "mcqs": [
     {
@@ -160,17 +180,18 @@ Rules:
 - Return EXACTLY 13 mcqs
 - Return EXACTLY 2 frqs
 - MCQs should feel AP-style and application-based
-- Use scenarios, institutions, constitutional ideas, civil liberties, elections, parties, courts, etc.
-- MCQ distractors must be plausible
-- MCQ explanations should be 2-4 sentences
 - FRQs should be realistic AP-style prompts
-- FRQ types can include argument essay, concept application, SCOTUS comparison, quantitative analysis
 - No markdown
 - No extra text
 - JSON ONLY
 `.trim();
 
-    const user = `Create one 15-question sprint mini section for ${scopeText}: 13 MCQs and 2 FRQs.`;
+    const user =
+      subj === "micro"
+        ? `Create one 15-question AP Micro mini section for ${scopeText}: 13 MCQs and 2 FRQs.`
+        : subj === "macro"
+        ? `Create one 15-question AP Macro mini section for ${scopeText}: 13 MCQs and 2 FRQs.`
+        : `Create one 15-question AP Gov mini section for ${scopeText}: 13 MCQs and 2 FRQs.`;
 
     const r = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
@@ -242,7 +263,8 @@ Rules:
     }
 
     return NextResponse.json({
-      scope: parsed.scope || "AP Gov",
+      subject: parsed.subject || subj,
+      scope: parsed.scope || scopeText,
       mcqs: parsed.mcqs,
       frqs: parsed.frqs,
     } as MiniSection);

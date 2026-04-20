@@ -1,293 +1,132 @@
-"use client";
-
 import Link from "next/link";
-import { useMemo, useState } from "react";
 
-type Mcq = {
-  subject?: string;
-  unit: string;
-  prompt: string;
-  choices: { A: string; B: string; C: string; D: string };
-  answer: "A" | "B" | "C" | "D";
-  explanation: string;
-};
-
-const MACRO_UNITS = [
-  { value: "1", label: "Unit 1 — Basic Economic Concepts" },
-  { value: "2", label: "Unit 2 — Economic Indicators and the Business Cycle" },
-  { value: "3", label: "Unit 3 — National Income and Price Determination" },
-  { value: "4", label: "Unit 4 — Financial Sector" },
-  { value: "5", label: "Unit 5 — Long-Run Consequences of Stabilization Policies" },
-  { value: "6", label: "Unit 6 — Open Economy: International Trade and Finance" },
-  { value: "any", label: "Any Unit" },
-];
-
-export default function MacroPracticePage() {
-  const [unit, setUnit] = useState("any");
-  const [questions, setQuestions] = useState<Mcq[]>([]);
-  const [selected, setSelected] = useState<Record<number, "A" | "B" | "C" | "D" | null>>({});
-  const [checked, setChecked] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-
-  const answeredCount = useMemo(
-    () => Object.values(selected).filter(Boolean).length,
-    [selected]
-  );
-
-  const score = checked
-    ? questions.reduce((sum, q, i) => sum + (selected[i] === q.answer ? 1 : 0), 0)
-    : 0;
-
-  async function generate() {
-    setLoading(true);
-    setErr(null);
-    setChecked(false);
-    setSelected({});
-    setQuestions([]);
-
-    try {
-      const res = await fetch("/api/mcq", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subject: "macro", unit, count: 5 }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setErr(data?.error || "Failed to generate questions");
-        return;
-      }
-
-      setQuestions(data.questions || []);
-    } catch (e: any) {
-      setErr(String(e?.message ?? e));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function choose(index: number, answer: "A" | "B" | "C" | "D") {
-    if (checked) return;
-    setSelected((prev) => ({ ...prev, [index]: answer }));
-  }
-
-  function checkAll() {
-    setChecked(true);
-  }
-
+export default function MacroPage() {
   return (
     <main
       style={{
-        minHeight: "100vh",
-        background: "#000",
-        color: "#fff",
-        padding: 40,
+        padding: "48px 24px",
         fontFamily: "system-ui",
+        backgroundColor: "#000000",
+        color: "#ffffff",
+        minHeight: "100vh",
+        maxWidth: 1100,
+        margin: "0 auto",
       }}
     >
-      <div style={{ maxWidth: 980, margin: "0 auto" }}>
-        <Link
-          href="/macro"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            textDecoration: "none",
-            color: "#fff",
-            fontWeight: 800,
-            marginBottom: 24,
-          }}
-        >
-          <span style={{ fontSize: 20 }}>←</span>
-          <span>Back</span>
-        </Link>
+      <Link
+        href="/"
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 8,
+          marginBottom: 22,
+          textDecoration: "none",
+          color: "#fff",
+          fontWeight: 800,
+          opacity: 0.9,
+        }}
+      >
+        <span style={{ fontSize: 20 }}>←</span>
+        <span>Back</span>
+      </Link>
 
-        <h1 style={{ fontSize: 42, marginBottom: 8, fontWeight: 900 }}>
-          AP Macro Practice
-        </h1>
-
-        <p style={{ color: "#d6d6d6", marginBottom: 24, lineHeight: 1.5 }}>
-          Generate AP Macro multiple-choice questions using realistic economic
-          scenarios and AP-style reasoning.
-        </p>
-
-        <div
-          style={{
-            display: "flex",
-            gap: 12,
-            alignItems: "center",
-            flexWrap: "wrap",
-            marginBottom: 24,
-          }}
-        >
-          <select
-            value={unit}
-            onChange={(e) => setUnit(e.target.value)}
-            style={{
-              background: "#111",
-              color: "#fff",
-              border: "1px solid #444",
-              padding: "10px 12px",
-              borderRadius: 10,
-              fontWeight: 700,
-            }}
-          >
-            {MACRO_UNITS.map((u) => (
-              <option key={u.value} value={u.value}>
-                {u.label}
-              </option>
-            ))}
-          </select>
-
-          <button
-            onClick={generate}
-            disabled={loading}
-            style={{
-              padding: "10px 16px",
-              borderRadius: 10,
-              border: "1px solid #fff",
-              background: "#fff",
-              color: "#000",
-              fontWeight: 800,
-              cursor: loading ? "not-allowed" : "pointer",
-            }}
-          >
-            {loading ? "Generating..." : "Generate 5 Questions"}
-          </button>
+      <header style={{ marginBottom: 28 }}>
+        <div style={{ fontSize: 14, color: "#cfcfcf", fontWeight: 700 }}>
+          Levi AP Tutor Hub
         </div>
 
-        {err && (
-          <div
-            style={{
-              marginBottom: 20,
-              padding: 14,
-              borderRadius: 12,
-              border: "1px solid rgba(255,80,80,0.5)",
-              background: "rgba(255,80,80,0.12)",
-              color: "#ffd4d4",
-            }}
-          >
-            {err}
-          </div>
-        )}
+        <h1 style={{ fontSize: 46, margin: "10px 0 10px", fontWeight: 900 }}>
+          AP Macroeconomics
+        </h1>
 
-        {checked && questions.length > 0 && (
-          <div
-            style={{
-              marginBottom: 22,
-              padding: 18,
-              borderRadius: 16,
-              border: "1px solid #333",
-              background: "#0a0a0a",
-              fontWeight: 900,
-              fontSize: 22,
-            }}
-          >
-            Score: {score}/{questions.length}
-          </div>
-        )}
+        <p
+          style={{
+            color: "#e5e5e5",
+            maxWidth: 780,
+            lineHeight: 1.55,
+            fontSize: 18,
+          }}
+        >
+          Practice AP Macro with AI-generated multiple-choice questions,
+          free-response prompts, and timed mini sections.
+        </p>
+      </header>
 
-        {questions.map((q, index) => {
-          const selectedAnswer = selected[index];
-          const correct = selectedAnswer === q.answer;
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+          gap: 16,
+        }}
+      >
+        <ToolCard
+          title="Practice MCQs"
+          desc="Generate 5 AP Macro multiple-choice questions by unit."
+          href="/macro/practice"
+          badge="Live Now"
+        />
 
-          return (
-            <div
-              key={index}
-              style={{
-                marginTop: 22,
-                border: "1px solid rgba(255,255,255,0.14)",
-                borderRadius: 18,
-                padding: 20,
-                background: "rgba(255,255,255,0.04)",
-              }}
-            >
-              <div style={{ fontSize: 18, fontWeight: 900, marginBottom: 14 }}>
-                Question {index + 1}
-              </div>
+        <ToolCard
+          title="FRQ Studio"
+          desc="Generate and grade AP Macro free-response questions."
+          href="/macro/frq"
+          badge="Live Now"
+        />
 
-              <div style={{ fontSize: 18, lineHeight: 1.6, marginBottom: 16 }}>
-                {q.prompt}
-              </div>
-
-              <div style={{ display: "grid", gap: 10 }}>
-                {(["A", "B", "C", "D"] as const).map((key) => {
-                  const isSelected = selectedAnswer === key;
-                  const showCorrect = checked && q.answer === key;
-                  const showWrong = checked && isSelected && q.answer !== key;
-
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => choose(index, key)}
-                      style={{
-                        display: "block",
-                        textAlign: "left",
-                        padding: 14,
-                        width: "100%",
-                        background: isSelected ? "#fff" : "#111",
-                        color: isSelected ? "#000" : "#fff",
-                        border: showCorrect
-                          ? "2px solid rgba(0,255,0,0.65)"
-                          : showWrong
-                          ? "2px solid rgba(255,0,0,0.65)"
-                          : "1px solid rgba(255,255,255,0.14)",
-                        borderRadius: 12,
-                        cursor: checked ? "default" : "pointer",
-                        lineHeight: 1.5,
-                      }}
-                    >
-                      <strong>{key}.</strong> {q.choices[key]}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {checked && (
-                <div
-                  style={{
-                    marginTop: 20,
-                    padding: 16,
-                    borderRadius: 14,
-                    border: correct
-                      ? "1px solid rgba(0,255,0,0.4)"
-                      : "1px solid rgba(255,0,0,0.4)",
-                    background: correct
-                      ? "rgba(0,255,0,0.07)"
-                      : "rgba(255,0,0,0.07)",
-                  }}
-                >
-                  <strong>
-                    {correct ? "Correct" : "Incorrect"} (Correct: {q.answer})
-                  </strong>
-                  <p style={{ marginTop: 10, lineHeight: 1.6 }}>{q.explanation}</p>
-                </div>
-              )}
-            </div>
-          );
-        })}
-
-        {questions.length > 0 && !checked && (
-          <button
-            onClick={checkAll}
-            disabled={answeredCount !== questions.length}
-            style={{
-              marginTop: 24,
-              padding: "12px 18px",
-              borderRadius: 12,
-              border: "1px solid #fff",
-              background: answeredCount === questions.length ? "#fff" : "#333",
-              color: answeredCount === questions.length ? "#000" : "#bbb",
-              fontWeight: 900,
-              cursor: answeredCount === questions.length ? "pointer" : "not-allowed",
-            }}
-          >
-            Submit Answers
-          </button>
-        )}
+        <ToolCard
+          title="Timed Mini Section"
+          desc="Take a timed AP Macro drill with 13 MCQs and 2 FRQs."
+          href="/macro/mini-section"
+          badge="Live Now"
+        />
       </div>
     </main>
+  );
+}
+
+function ToolCard({
+  title,
+  desc,
+  href,
+  badge,
+}: {
+  title: string;
+  desc: string;
+  href: string;
+  badge: string;
+}) {
+  return (
+    <Link
+      href={href}
+      style={{
+        textDecoration: "none",
+        color: "#ffffff",
+        border: "2px solid #ffffff",
+        borderRadius: 18,
+        padding: 18,
+        display: "block",
+        background: "#000000",
+      }}
+    >
+      <div
+        style={{
+          display: "inline-block",
+          padding: "4px 10px",
+          borderRadius: 999,
+          border: "1px solid #ffffff",
+          fontSize: 12,
+          marginBottom: 10,
+          color: "#e5e5e5",
+        }}
+      >
+        {badge}
+      </div>
+
+      <div style={{ fontSize: 22, fontWeight: 900 }}>{title}</div>
+      <div style={{ marginTop: 8, color: "#e5e5e5", lineHeight: 1.5 }}>
+        {desc}
+      </div>
+      <div style={{ marginTop: 14, fontWeight: 800 }}>Open</div>
+    </Link>
   );
 }
