@@ -109,6 +109,7 @@ export async function POST(req: Request) {
     }
 
     let system = "";
+    let user = "";
 
     if (subject === "micro") {
       system = `
@@ -141,6 +142,8 @@ Return ONLY a valid JSON OBJECT with this EXACT structure:
   ]
 }
 `.trim();
+
+      user = `Create ${count} challenging AP Microeconomics multiple-choice questions for unit ${unit}.`;
     } else if (subject === "macro") {
       system = `
 You are an AP Macroeconomics exam question writer.
@@ -172,6 +175,41 @@ Return ONLY a valid JSON OBJECT with this EXACT structure:
   ]
 }
 `.trim();
+
+      user = `Create ${count} challenging AP Macroeconomics multiple-choice questions for unit ${unit}.`;
+    } else if (subject === "apes") {
+      system = `
+You are an AP Environmental Science exam question writer.
+
+Generate EXACTLY ${count} high-quality AP Environmental Science multiple-choice questions.
+
+Requirements:
+- Must be application-based, not just definitions
+- Use realistic environmental scenarios
+- Test reasoning involving ecosystems, biodiversity, population, earth systems, land and water use, energy resources, pollution, and global change
+- Make them feel like real APES questions
+
+Return ONLY a valid JSON OBJECT with this EXACT structure:
+{
+  "questions": [
+    {
+      "subject": "apes",
+      "unit": "string",
+      "prompt": "string",
+      "choices": {
+        "A": "string",
+        "B": "string",
+        "C": "string",
+        "D": "string"
+      },
+      "answer": "A|B|C|D",
+      "explanation": "string"
+    }
+  ]
+}
+`.trim();
+
+      user = `Create ${count} challenging AP Environmental Science multiple-choice questions for unit ${unit}.`;
     } else {
       system = `
 You are an AP U.S. Government & Politics exam question writer.
@@ -203,14 +241,9 @@ Return ONLY a valid JSON OBJECT with this EXACT structure:
   ]
 }
 `.trim();
-    }
 
-    const user =
-      subject === "micro"
-        ? `Create ${count} challenging AP Microeconomics multiple-choice questions for unit ${unit}.`
-        : subject === "macro"
-        ? `Create ${count} challenging AP Macroeconomics multiple-choice questions for unit ${unit}.`
-        : `Create ${count} challenging AP Gov multiple-choice questions for unit ${unit}.`;
+      user = `Create ${count} challenging AP Gov multiple-choice questions for unit ${unit}.`;
+    }
 
     const r = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",

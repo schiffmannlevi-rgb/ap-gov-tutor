@@ -71,20 +71,23 @@ export default function HomePage() {
 
           <SubjectCard
             title="AP Macroeconomics"
-            desc="Practice MCQs and build toward full Macro tools."
+            desc="Practice MCQs, FRQs, and timed sections."
             href="/macro"
             pill="Live Now"
             sublinks={[{ label: "Enter", href: "/macro" }]}
           />
 
-          <ComingSoonCard
-            title="AP Statistics"
-            desc="MCQs, FRQs, concept review, and timed practice sets."
+          <SubjectCard
+            title="AP Environmental Science"
+            desc="Practice MCQs and build toward full APES tools."
+            href="/apes"
+            pill="Live Now"
+            sublinks={[{ label: "Enter", href: "/apes" }]}
           />
 
           <ComingSoonCard
-            title="AP Environmental Science"
-            desc="Unit review, MCQs, FRQs, and applied scenario practice."
+            title="AP Statistics"
+            desc="MCQs, FRQs, concept review, and timed practice sets."
           />
         </div>
       </section>
