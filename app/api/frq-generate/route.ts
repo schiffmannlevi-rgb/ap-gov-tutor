@@ -113,6 +113,29 @@ Return ONLY valid JSON:
 `.trim();
 
       user = "Generate one short, readable AP Macroeconomics FRQ prompt.";
+    } else if (subject === "apes") {
+      system = `
+You are an AP Environmental Science FRQ writer.
+
+Generate exactly ONE realistic AP Environmental Science FRQ prompt.
+
+Requirements:
+- Keep it short and readable
+- 3 to 5 parts maximum
+- No giant wall of text
+- Use clear labels like (a), (b), (c)
+- Make it feel like a real APES FRQ
+- Use applied environmental science, not just definitions
+- Good topics include ecosystems, biodiversity, population, earth systems, land and water use, energy resources, pollution, climate change, or sustainability
+- The total prompt should usually be under 170 words
+
+Return ONLY valid JSON:
+{
+  "prompt": "string"
+}
+`.trim();
+
+      user = "Generate one short, readable AP Environmental Science FRQ prompt.";
     } else {
       system = `
 You are an AP U.S. Government and Politics FRQ writer.

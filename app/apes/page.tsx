@@ -23,18 +23,34 @@ export default function ApesPage() {
           textDecoration: "none",
           color: "#fff",
           fontWeight: 800,
+          opacity: 0.9,
         }}
       >
-        ← Back
+        <span style={{ fontSize: 20 }}>←</span>
+        <span>Back</span>
       </Link>
 
-      <h1 style={{ fontSize: 46, fontWeight: 900 }}>
-        AP Environmental Science
-      </h1>
+      <header style={{ marginBottom: 28 }}>
+        <div style={{ fontSize: 14, color: "#cfcfcf", fontWeight: 700 }}>
+          Levi AP Tutor Hub
+        </div>
 
-      <p style={{ color: "#ccc", marginBottom: 24 }}>
-        Practice APES with MCQs, FRQs, and timed sections.
-      </p>
+        <h1 style={{ fontSize: 46, margin: "10px 0 10px", fontWeight: 900 }}>
+          AP Environmental Science
+        </h1>
+
+        <p
+          style={{
+            color: "#e5e5e5",
+            maxWidth: 780,
+            lineHeight: 1.55,
+            fontSize: 18,
+          }}
+        >
+          Practice APES with AI-generated multiple-choice questions,
+          free-response prompts, and timed mini sections.
+        </p>
+      </header>
 
       <div
         style={{
@@ -45,20 +61,23 @@ export default function ApesPage() {
       >
         <ToolCard
           title="Practice MCQs"
-          desc="Generate APES multiple-choice questions."
+          desc="Generate 5 APES multiple-choice questions by unit."
           href="/apes/practice"
+          badge="Live Now"
         />
 
         <ToolCard
           title="FRQ Studio"
-          desc="Generate and grade APES FRQs."
+          desc="Generate and grade APES free-response questions."
           href="/apes/frq"
+          badge="Live Now"
         />
 
         <ToolCard
           title="Timed Mini Section"
-          desc="Full APES timed practice."
+          desc="Take a timed APES drill with 13 MCQs and 2 FRQs."
           href="/apes/mini-section"
+          badge="Live Now"
         />
       </div>
     </main>
@@ -69,24 +88,45 @@ function ToolCard({
   title,
   desc,
   href,
+  badge,
 }: {
   title: string;
   desc: string;
   href: string;
+  badge: string;
 }) {
   return (
     <Link
       href={href}
       style={{
-        border: "2px solid white",
-        borderRadius: 16,
-        padding: 18,
         textDecoration: "none",
-        color: "white",
+        color: "#ffffff",
+        border: "2px solid #ffffff",
+        borderRadius: 18,
+        padding: 18,
+        display: "block",
+        background: "#000000",
       }}
     >
-      <div style={{ fontWeight: 900 }}>{title}</div>
-      <div style={{ marginTop: 6, color: "#ccc" }}>{desc}</div>
+      <div
+        style={{
+          display: "inline-block",
+          padding: "4px 10px",
+          borderRadius: 999,
+          border: "1px solid #ffffff",
+          fontSize: 12,
+          marginBottom: 10,
+          color: "#e5e5e5",
+        }}
+      >
+        {badge}
+      </div>
+
+      <div style={{ fontSize: 22, fontWeight: 900 }}>{title}</div>
+      <div style={{ marginTop: 8, color: "#e5e5e5", lineHeight: 1.5 }}>
+        {desc}
+      </div>
+      <div style={{ marginTop: 14, fontWeight: 800 }}>Open</div>
     </Link>
   );
 }

@@ -127,6 +127,7 @@ export async function POST(req: Request) {
     }
 
     let scopeText = "";
+
     if (subj === "micro") {
       scopeText =
         scope === "all"
@@ -137,6 +138,11 @@ export async function POST(req: Request) {
         scope === "all"
           ? "All of AP Macroeconomics"
           : `Unit ${scope} of AP Macroeconomics`;
+    } else if (subj === "apes") {
+      scopeText =
+        scope === "all"
+          ? "All of AP Environmental Science"
+          : `Unit ${scope} of AP Environmental Science`;
     } else {
       scopeText =
         scope === "all"
@@ -147,7 +153,7 @@ export async function POST(req: Request) {
     const system = `
 You are an AP exam writer.
 
-Generate a timed sprint mini section for ${scopeText}.
+Generate a timed mini section for ${scopeText}.
 
 You MUST return ONLY a valid JSON object with this EXACT structure:
 {
@@ -181,6 +187,7 @@ Rules:
 - Return EXACTLY 2 frqs
 - MCQs should feel AP-style and application-based
 - FRQs should be realistic AP-style prompts
+- Keep FRQs readable, not huge walls of text
 - No markdown
 - No extra text
 - JSON ONLY
@@ -191,6 +198,8 @@ Rules:
         ? `Create one 15-question AP Micro mini section for ${scopeText}: 13 MCQs and 2 FRQs.`
         : subj === "macro"
         ? `Create one 15-question AP Macro mini section for ${scopeText}: 13 MCQs and 2 FRQs.`
+        : subj === "apes"
+        ? `Create one 15-question AP Environmental Science mini section for ${scopeText}: 13 MCQs and 2 FRQs.`
         : `Create one 15-question AP Gov mini section for ${scopeText}: 13 MCQs and 2 FRQs.`;
 
     const r = await fetch("https://api.openai.com/v1/responses", {
@@ -237,7 +246,7 @@ Rules:
 
     if (!parsed || !Array.isArray(parsed.mcqs) || !Array.isArray(parsed.frqs)) {
       return NextResponse.json(
-        { error: "Invalid mini section format returned", parsed },
+        { error: "Invalid mini section format returned", parsed, outputText },
         { status: 500 }
       );
     }
