@@ -143,6 +143,16 @@ export async function POST(req: Request) {
         scope === "all"
           ? "All of AP Environmental Science"
           : `Unit ${scope} of AP Environmental Science`;
+    } else if (subj === "stats") {
+      scopeText =
+        scope === "all"
+          ? "All of AP Statistics"
+          : `Unit ${scope} of AP Statistics`;
+    } else if (subj === "bio") {
+      scopeText =
+        scope === "all"
+          ? "All of AP Biology"
+          : `Unit ${scope} of AP Biology`;
     } else {
       scopeText =
         scope === "all"
@@ -200,6 +210,10 @@ Rules:
         ? `Create one 15-question AP Macro mini section for ${scopeText}: 13 MCQs and 2 FRQs.`
         : subj === "apes"
         ? `Create one 15-question AP Environmental Science mini section for ${scopeText}: 13 MCQs and 2 FRQs.`
+        : subj === "stats"
+        ? `Create one 15-question AP Statistics mini section for ${scopeText}: 13 MCQs and 2 FRQs.`
+        : subj === "bio"
+        ? `Create one 15-question AP Biology mini section for ${scopeText}: 13 MCQs and 2 FRQs.`
         : `Create one 15-question AP Gov mini section for ${scopeText}: 13 MCQs and 2 FRQs.`;
 
     const r = await fetch("https://api.openai.com/v1/responses", {

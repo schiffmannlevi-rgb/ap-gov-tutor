@@ -1,21 +1,28 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { useState } from "react";
+
+type FrqResult = {
+  overall_score_0_to_6: number;
+  what_was_done_well?: string[];
+  what_to_improve?: string[];
+  missing_or_incorrect?: string[];
+};
 
 export default function BioFrqPage() {
   const [prompt, setPrompt] = useState("");
   const [response, setResponse] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [grading, setGrading] = useState(false);
-  const [feedback, setFeedback] = useState("");
+  const [result, setResult] = useState<FrqResult | null>(null);
+  const [loadingPrompt, setLoadingPrompt] = useState(false);
+  const [loadingGrade, setLoadingGrade] = useState(false);
   const [error, setError] = useState("");
 
   async function generatePrompt() {
-    setLoading(true);
+    setLoadingPrompt(true);
     setError("");
-    setPrompt("");
-    setFeedback("");
+    setResult(null);
+    setResponse("");
 
     try {
       const res = await fetch("/api/frq-generate", {
@@ -27,162 +34,113 @@ export default function BioFrqPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Failed to generate prompt");
+        setError(data?.error || "Failed to generate FRQ");
         return;
       }
 
-      setPrompt(data.prompt);
+      setPrompt(data.prompt || "");
     } catch (e: any) {
-      setError(String(e));
+      setError(String(e?.message ?? e));
     } finally {
-      setLoading(false);
+      setLoadingPrompt(false);
     }
   }
 
   async function gradeResponse() {
-    if (!response) return;
+    if (!prompt.trim() || !response.trim()) return;
 
-    setGrading(true);
+    setLoadingGrade(true);
     setError("");
-    setFeedback("");
+    setResult(null);
 
     try {
       const res = await fetch("/api/frq-grade", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          subject: "bio",
-          prompt,
-          response,
-        }),
+        body: JSON.stringify({ prompt, response }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Failed to grade response");
+        setError(data?.error || "Failed to grade");
         return;
       }
 
-      setFeedback(data.feedback || "No feedback returned.");
+      setResult(data);
     } catch (e: any) {
-      setError(String(e));
+      setError(String(e?.message ?? e));
     } finally {
-      setGrading(false);
+      setLoadingGrade(false);
     }
   }
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "#000",
-        color: "#fff",
-        padding: 40,
-        fontFamily: "system-ui",
-      }}
-    >
-      <div style={{ maxWidth: 900, margin: "0 auto" }}>
-        <Link href="/bio" style={{ color: "#fff", fontWeight: 800 }}>
+    <main style={{ minHeight: "100vh", background: "#000", color: "#fff", padding: 40, fontFamily: "system-ui" }}>
+      <div style={{ maxWidth: 980, margin: "0 auto" }}>
+        <Link href="/bio" style={{ color: "#fff", fontWeight: 800, textDecoration: "none" }}>
           ← Back
         </Link>
 
-        <h1 style={{ fontSize: 42, marginTop: 10 }}>AP Bio FRQ Studio</h1>
+        <h1 style={{ fontSize: 42, fontWeight: 900 }}>AP Bio FRQ Studio</h1>
         <p style={{ color: "#ccc", marginBottom: 20 }}>
-          Generate a prompt, write your response, and get rubric-style feedback.
+          Generate a prompt, write your response, and get rubric-based grading.
         </p>
 
-        <button
-          onClick={generatePrompt}
-          disabled={loading}
-          style={{
-            padding: "10px 16px",
-            borderRadius: 10,
-            border: "1px solid #fff",
-            background: "#fff",
-            color: "#000",
-            fontWeight: 800,
-            marginBottom: 20,
-            cursor: "pointer",
-          }}
-        >
-          {loading ? "Generating..." : "Generate Prompt"}
+        <button onClick={generatePrompt} style={{ padding: "10px 16px", borderRadius: 10, border: "1px solid #fff", background: "#fff", color: "#000", fontWeight: 800, marginBottom: 20 }}>
+          {loadingPrompt ? "Generating..." : "Generate Prompt"}
         </button>
 
-        {error && (
-          <div
-            style={{
-              marginBottom: 16,
-              padding: 12,
-              border: "1px solid red",
-              borderRadius: 10,
-              color: "#ffb3b3",
-            }}
-          >
-            {error}
+        <div style={{ border: "1px solid rgba(255,255,255,0.14)", borderRadius: 18, padding: 18, background: "#111", marginBottom: 18 }}>
+          <div style={{ fontWeight: 900, marginBottom: 10, fontSize: 18 }}>Prompt</div>
+          <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.7, color: "#f1f1f1", fontSize: 18 }}>
+            {prompt || "Click Generate Prompt to load an AP Bio FRQ."}
           </div>
-        )}
+        </div>
 
-        {prompt && (
-          <div
-            style={{
-              border: "1px solid #333",
-              borderRadius: 12,
-              padding: 16,
-              marginBottom: 20,
-            }}
-          >
-            <strong>Prompt</strong>
-            <p style={{ marginTop: 10, lineHeight: 1.6 }}>{prompt}</p>
-          </div>
-        )}
+        <div style={{ border: "1px solid rgba(255,255,255,0.14)", borderRadius: 18, padding: 18, background: "#111", marginBottom: 18 }}>
+          <div style={{ fontWeight: 900, marginBottom: 10, fontSize: 18 }}>Your Response</div>
 
-        <textarea
-          value={response}
-          onChange={(e) => setResponse(e.target.value)}
-          placeholder="Write your response here..."
-          style={{
-            width: "100%",
-            minHeight: 180,
-            padding: 14,
-            borderRadius: 10,
-            background: "#111",
-            color: "#fff",
-            border: "1px solid #444",
-            marginBottom: 16,
-          }}
-        />
+          <textarea
+            value={response}
+            onChange={(e) => setResponse(e.target.value)}
+            placeholder="Write your response here..."
+            rows={10}
+            style={{ width: "100%", padding: 14, borderRadius: 12, border: "1px solid #333", background: "#0b0b0b", color: "#fff", fontSize: 16, lineHeight: 1.6, resize: "vertical" }}
+          />
+        </div>
 
         <button
           onClick={gradeResponse}
-          disabled={grading}
-          style={{
-            padding: "10px 16px",
-            borderRadius: 10,
-            border: "1px solid #fff",
-            background: "#fff",
-            color: "#000",
-            fontWeight: 800,
-            cursor: "pointer",
-          }}
+          disabled={!prompt.trim() || !response.trim()}
+          style={{ padding: "10px 16px", borderRadius: 10, border: "1px solid #fff", background: !prompt.trim() || !response.trim() ? "#333" : "#fff", color: !prompt.trim() || !response.trim() ? "#999" : "#000", fontWeight: 800 }}
         >
-          {grading ? "Grading..." : "Grade Response"}
+          {loadingGrade ? "Grading..." : "Grade Response"}
         </button>
 
-        {feedback && (
-          <div
-            style={{
-              marginTop: 20,
-              border: "1px solid #333",
-              borderRadius: 12,
-              padding: 16,
-            }}
-          >
-            <strong>Feedback</strong>
-            <p style={{ marginTop: 10, lineHeight: 1.6 }}>{feedback}</p>
+        {error && <div style={{ marginTop: 20, color: "#ffb4b4" }}>{error}</div>}
+
+        {result && (
+          <div style={{ marginTop: 22, padding: 18, borderRadius: 16, border: "1px solid #333", background: "#0a0a0a" }}>
+            <div style={{ fontWeight: 900, fontSize: 22 }}>Score: {result.overall_score_0_to_6}/6</div>
+            <Section title="What you did well" items={result.what_was_done_well} />
+            <Section title="What to improve" items={result.what_to_improve} />
+            <Section title="Missing or incorrect" items={result.missing_or_incorrect} />
           </div>
         )}
       </div>
     </main>
+  );
+}
+
+function Section({ title, items }: { title: string; items?: string[] }) {
+  if (!items || items.length === 0) return null;
+  return (
+    <div style={{ marginTop: 18 }}>
+      <div style={{ fontWeight: 900 }}>{title}</div>
+      <ul style={{ paddingLeft: 20 }}>
+        {items.map((x, i) => <li key={i}>{x}</li>)}
+      </ul>
+    </div>
   );
 }

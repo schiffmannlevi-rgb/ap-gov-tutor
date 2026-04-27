@@ -136,6 +136,52 @@ Return ONLY valid JSON:
 `.trim();
 
       user = "Generate one short, readable AP Environmental Science FRQ prompt.";
+    } else if (subject === "stats") {
+      system = `
+You are an AP Statistics FRQ writer.
+
+Generate exactly ONE realistic AP Statistics FRQ prompt.
+
+Requirements:
+- Keep it short and readable
+- 3 to 5 parts maximum
+- No giant wall of text
+- Use clear labels like (a), (b), (c)
+- Make it feel like a real AP Statistics FRQ
+- Use applied statistics, not just definitions
+- Good topics include one-variable data, two-variable data, study design, probability, random variables, sampling distributions, confidence intervals, significance tests, chi-square tests, or regression
+- The total prompt should usually be under 170 words
+
+Return ONLY valid JSON:
+{
+  "prompt": "string"
+}
+`.trim();
+
+      user = "Generate one short, readable AP Statistics FRQ prompt.";
+    } else if (subject === "bio") {
+      system = `
+You are an AP Biology FRQ writer.
+
+Generate exactly ONE realistic AP Biology FRQ prompt.
+
+Requirements:
+- Keep it short and readable
+- 3 to 5 parts maximum
+- No giant wall of text
+- Use clear labels like (a), (b), (c)
+- Make it feel like a real AP Biology FRQ
+- Use applied biology, data interpretation, or experimental design
+- Good topics include chemistry of life, cells, enzymes, cellular respiration, photosynthesis, cell communication, genetics, gene expression, evolution, ecology, or experimental design
+- The total prompt should usually be under 170 words
+
+Return ONLY valid JSON:
+{
+  "prompt": "string"
+}
+`.trim();
+
+      user = "Generate one short, readable AP Biology FRQ prompt.";
     } else {
       system = `
 You are an AP U.S. Government and Politics FRQ writer.
