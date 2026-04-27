@@ -47,12 +47,41 @@ export default function HomePage() {
             gap: 16,
           }}
         >
-          <SubjectCard title="AP U.S. Government" desc="MCQ practice, FRQ grading, and timed mini sections." href="/gov" />
-          <SubjectCard title="AP Microeconomics" desc="Practice MCQs, FRQs, and timed sections." href="/micro" />
-          <SubjectCard title="AP Macroeconomics" desc="Practice MCQs, FRQs, and timed sections." href="/macro" />
-          <SubjectCard title="AP Environmental Science" desc="Practice MCQs, FRQs, and timed sections." href="/apes" />
-          <SubjectCard title="AP Statistics" desc="Practice MCQs, FRQs, and timed sections." href="/stats" />
-          <SubjectCard title="AP Biology" desc="Practice MCQs, FRQs, and timed sections." href="/bio" />
+          <SubjectCard
+            title="AP U.S. Government"
+            desc="MCQ practice, FRQ grading, and timed mini sections."
+            href="/gov"
+          />
+
+          <SubjectCard
+            title="AP Microeconomics"
+            desc="Practice MCQs, FRQs, and timed sections."
+            href="/micro"
+          />
+
+          <SubjectCard
+            title="AP Macroeconomics"
+            desc="Practice MCQs, FRQs, and timed sections."
+            href="/macro"
+          />
+
+          <SubjectCard
+            title="AP Environmental Science"
+            desc="Practice MCQs, FRQs, and timed sections."
+            href="/apes"
+          />
+
+          <SubjectCard
+            title="AP Statistics"
+            desc="Practice MCQs, FRQs, and timed sections."
+            href="/stats"
+          />
+
+          <SubjectCard
+            title="AP Biology"
+            desc="Practice MCQs, FRQs, and timed sections."
+            href="/bio"
+          />
         </div>
       </section>
     </main>
@@ -77,7 +106,14 @@ function SubjectCard({
         background: "#000000",
       }}
     >
-      <Link href={href} style={{ textDecoration: "none", color: "#ffffff", display: "block" }}>
+      <Link
+        href={href}
+        style={{
+          textDecoration: "none",
+          color: "#ffffff",
+          display: "block",
+        }}
+      >
         <div
           style={{
             display: "inline-block",
@@ -93,6 +129,7 @@ function SubjectCard({
         </div>
 
         <div style={{ fontSize: 24, fontWeight: 900 }}>{title}</div>
+
         <div style={{ marginTop: 8, color: "#e5e5e5", lineHeight: 1.5 }}>
           {desc}
         </div>
@@ -100,7 +137,6 @@ function SubjectCard({
         <div
           style={{
             marginTop: 16,
-            textDecoration: "none",
             color: "#ffffff",
             padding: "10px 12px",
             borderRadius: 12,
