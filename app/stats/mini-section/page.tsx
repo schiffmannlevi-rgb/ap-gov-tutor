@@ -24,6 +24,12 @@ type MiniSection = {
   frqs: Frq[];
 };
 
+type FrqGrade = {
+  overall_score_0_to_6: number;
+  what_to_improve?: string[];
+  missing_or_incorrect?: string[];
+};
+
 const SCOPE_OPTIONS = [
   { value: "all", label: "AP Stats as a whole" },
   { value: "1", label: "Unit 1" },
@@ -42,17 +48,23 @@ export default function StatsMiniSectionPage() {
   const [section, setSection] = useState<MiniSection | null>(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
   const [mcqAnswers, setMcqAnswers] = useState<Record<number, "A" | "B" | "C" | "D" | null>>({});
   const [frqAnswers, setFrqAnswers] = useState<Record<number, string>>({});
   const [submitted, setSubmitted] = useState(false);
+
   const [timeLeft, setTimeLeft] = useState(1440);
+  const [frqGrading, setFrqGrading] = useState(false);
+  const [frqResults, setFrqResults] = useState<Record<number, FrqGrade | null>>({});
 
   useEffect(() => {
     if (!section || submitted) return;
+
     if (timeLeft <= 0) {
-      setSubmitted(true);
+      submitSection();
       return;
     }
+
     const id = setInterval(() => setTimeLeft((t) => t - 1), 1000);
     return () => clearInterval(id);
   }, [section, submitted, timeLeft]);
@@ -75,6 +87,7 @@ export default function StatsMiniSectionPage() {
     setSection(null);
     setMcqAnswers({});
     setFrqAnswers({});
+    setFrqResults({});
     setTimeLeft(1440);
 
     try {
@@ -99,6 +112,36 @@ export default function StatsMiniSectionPage() {
     }
   }
 
+  async function submitSection() {
+    if (!section || submitted) return;
+
+    setSubmitted(true);
+    setFrqGrading(true);
+
+    const results: Record<number, FrqGrade | null> = {};
+
+    for (let i = 0; i < section.frqs.length; i++) {
+      try {
+        const r = await fetch("/api/frq-grade", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prompt: section.frqs[i].prompt,
+            response: frqAnswers[i] || "",
+          }),
+        });
+
+        const data = await r.json();
+        results[i] = r.ok ? data : null;
+      } catch {
+        results[i] = null;
+      }
+    }
+
+    setFrqResults(results);
+    setFrqGrading(false);
+  }
+
   return (
     <main style={{ minHeight: "100vh", background: "#000", color: "#fff", padding: "36px 18px 60px", fontFamily: "system-ui" }}>
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
@@ -120,7 +163,7 @@ export default function StatsMiniSectionPage() {
 
           {submitted && section && (
             <div style={{ marginTop: 18, fontSize: 22, fontWeight: 900 }}>
-              MCQ Score: {mcqScore}/13
+              MCQ Score: {mcqScore}/13 {frqGrading ? "• Grading FRQs..." : ""}
             </div>
           )}
         </div>
@@ -129,6 +172,7 @@ export default function StatsMiniSectionPage() {
 
         {section?.mcqs.map((q, index) => {
           const selected = mcqAnswers[index];
+
           return (
             <div key={index} style={{ marginTop: 22, border: "1px solid rgba(255,255,255,0.14)", borderRadius: 18, padding: 20, background: "rgba(255,255,255,0.04)" }}>
               <div style={{ fontWeight: 900, fontSize: 20 }}>MCQ {index + 1}</div>
@@ -167,8 +211,9 @@ export default function StatsMiniSectionPage() {
 
         {section?.frqs.map((frq, index) => (
           <div key={index} style={{ marginTop: 22, border: "1px solid rgba(255,255,255,0.14)", borderRadius: 18, padding: 20, background: "rgba(255,255,255,0.04)" }}>
-            <div style={{ fontWeight: 900, fontSize: 20 }}>FRQ {index + 1}</div>
+            <div style={{ fontWeight: 900, fontSize: 20 }}>FRQ {index + 1} — {frq.type}</div>
             <p style={{ lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{frq.prompt}</p>
+
             <textarea
               disabled={submitted}
               value={frqAnswers[index] || ""}
@@ -176,11 +221,43 @@ export default function StatsMiniSectionPage() {
               rows={8}
               style={{ width: "100%", padding: 14, borderRadius: 12, background: "#111", color: "#fff", border: "1px solid #333" }}
             />
+
+            {submitted && (
+              <div style={{ marginTop: 16, padding: 16, borderRadius: 14, border: "1px solid rgba(255,255,255,0.14)", background: "#111" }}>
+                {frqGrading ? (
+                  <strong>Grading FRQ...</strong>
+                ) : frqResults[index] ? (
+                  <>
+                    <div style={{ fontWeight: 900, fontSize: 18 }}>Score: {frqResults[index]?.overall_score_0_to_6}/6</div>
+
+                    {frqResults[index]?.what_to_improve?.length ? (
+                      <div style={{ marginTop: 12 }}>
+                        <strong>What to improve</strong>
+                        <ul>
+                          {frqResults[index]?.what_to_improve?.map((item, i) => <li key={i}>{item}</li>)}
+                        </ul>
+                      </div>
+                    ) : null}
+
+                    {frqResults[index]?.missing_or_incorrect?.length ? (
+                      <div style={{ marginTop: 12 }}>
+                        <strong>Missing or incorrect</strong>
+                        <ul>
+                          {frqResults[index]?.missing_or_incorrect?.map((item, i) => <li key={i}>{item}</li>)}
+                        </ul>
+                      </div>
+                    ) : null}
+                  </>
+                ) : (
+                  <strong>FRQ grading failed.</strong>
+                )}
+              </div>
+            )}
           </div>
         ))}
 
         {section && !submitted && (
-          <button onClick={() => setSubmitted(true)} style={{ marginTop: 24, padding: "12px 18px", borderRadius: 12, border: "1px solid #fff", background: "#fff", color: "#000", fontWeight: 900 }}>
+          <button onClick={submitSection} style={{ marginTop: 24, padding: "12px 18px", borderRadius: 12, border: "1px solid #fff", background: "#fff", color: "#000", fontWeight: 900 }}>
             Submit Section
           </button>
         )}
