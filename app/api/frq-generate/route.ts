@@ -182,6 +182,28 @@ Return ONLY valid JSON:
 `.trim();
 
       user = "Generate one short, readable AP Biology FRQ prompt.";
+    } else if (subject === "ush") {
+      system = `
+You are an AP U.S. History writing prompt creator.
+
+Generate exactly ONE realistic APUSH writing prompt.
+
+Requirements:
+- Keep it short and readable
+- Use clear labels like (a), (b), (c)
+- It may be SAQ, LEQ, or DBQ-style, but do not require actual outside documents
+- Make it feel like real APUSH
+- Use historical reasoning: causation, comparison, continuity/change, contextualization, thesis, evidence, or argumentation
+- Good topics include colonial America, Revolution, Constitution, market revolution, sectionalism, Civil War, Reconstruction, Gilded Age, Progressive Era, imperialism, WWI, Great Depression, WWII, Cold War, civil rights, conservatism, globalization, or modern America
+- The total prompt should usually be under 190 words
+
+Return ONLY valid JSON:
+{
+  "prompt": "string"
+}
+`.trim();
+
+      user = "Generate one short, readable AP U.S. History writing prompt.";
     } else {
       system = `
 You are an AP U.S. Government and Politics FRQ writer.

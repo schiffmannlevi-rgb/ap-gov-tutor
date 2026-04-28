@@ -153,6 +153,11 @@ export async function POST(req: Request) {
         scope === "all"
           ? "All of AP Biology"
           : `Unit ${scope} of AP Biology`;
+    } else if (subj === "ush") {
+      scopeText =
+        scope === "all"
+          ? "All of AP U.S. History"
+          : `Period ${scope} of AP U.S. History`;
     } else {
       scopeText =
         scope === "all"
@@ -214,6 +219,8 @@ Rules:
         ? `Create one 15-question AP Statistics mini section for ${scopeText}: 13 MCQs and 2 FRQs.`
         : subj === "bio"
         ? `Create one 15-question AP Biology mini section for ${scopeText}: 13 MCQs and 2 FRQs.`
+        : subj === "ush"
+        ? `Create one 15-question AP U.S. History mini section for ${scopeText}: 13 MCQs and 2 writing prompts.`
         : `Create one 15-question AP Gov mini section for ${scopeText}: 13 MCQs and 2 FRQs.`;
 
     const r = await fetch("https://api.openai.com/v1/responses", {

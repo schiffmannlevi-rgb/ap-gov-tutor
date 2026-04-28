@@ -47,41 +47,13 @@ export default function HomePage() {
             gap: 16,
           }}
         >
-          <SubjectCard
-            title="AP U.S. Government"
-            desc="MCQ practice, FRQ grading, and timed mini sections."
-            href="/gov"
-          />
-
-          <SubjectCard
-            title="AP Microeconomics"
-            desc="Practice MCQs, FRQs, and timed sections."
-            href="/micro"
-          />
-
-          <SubjectCard
-            title="AP Macroeconomics"
-            desc="Practice MCQs, FRQs, and timed sections."
-            href="/macro"
-          />
-
-          <SubjectCard
-            title="AP Environmental Science"
-            desc="Practice MCQs, FRQs, and timed sections."
-            href="/apes"
-          />
-
-          <SubjectCard
-            title="AP Statistics"
-            desc="Practice MCQs, FRQs, and timed sections."
-            href="/stats"
-          />
-
-          <SubjectCard
-            title="AP Biology"
-            desc="Practice MCQs, FRQs, and timed sections."
-            href="/bio"
-          />
+          <SubjectCard title="AP U.S. Government" desc="MCQ practice, FRQ grading, and timed mini sections." href="/gov" />
+          <SubjectCard title="AP U.S. History" desc="Practice MCQs, SAQs, LEQs, DBQ-style prompts, and timed sections." href="/ush" />
+          <SubjectCard title="AP Microeconomics" desc="Practice MCQs, FRQs, and timed sections." href="/micro" />
+          <SubjectCard title="AP Macroeconomics" desc="Practice MCQs, FRQs, and timed sections." href="/macro" />
+          <SubjectCard title="AP Environmental Science" desc="Practice MCQs, FRQs, and timed sections." href="/apes" />
+          <SubjectCard title="AP Statistics" desc="Practice MCQs, FRQs, and timed sections." href="/stats" />
+          <SubjectCard title="AP Biology" desc="Practice MCQs, FRQs, and timed sections." href="/bio" />
         </div>
       </section>
     </main>

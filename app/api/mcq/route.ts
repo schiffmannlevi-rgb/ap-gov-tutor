@@ -111,7 +111,41 @@ export async function POST(req: Request) {
     let system = "";
     let user = "";
 
-    if (subject === "micro") {
+    if (subject === "ush") {
+      system = `
+You are an AP U.S. History exam question writer.
+
+Generate EXACTLY ${count} high-quality APUSH multiple-choice questions.
+
+Requirements:
+- Must be application-based, not just definitions
+- Use historical reasoning: causation, comparison, continuity/change, contextualization, interpretation, and evidence
+- Questions should feel like real APUSH stimulus-style MCQs
+- Include short stimulus context inside the prompt when useful
+- Cover the requested APUSH period if a period is provided
+
+Return ONLY a valid JSON OBJECT with this EXACT structure:
+{
+  "questions": [
+    {
+      "subject": "ush",
+      "unit": "string",
+      "prompt": "string",
+      "choices": {
+        "A": "string",
+        "B": "string",
+        "C": "string",
+        "D": "string"
+      },
+      "answer": "A|B|C|D",
+      "explanation": "string"
+    }
+  ]
+}
+`.trim();
+
+      user = `Create ${count} challenging AP U.S. History multiple-choice questions for period ${unit}.`;
+    } else if (subject === "micro") {
       system = `
 You are an AP Microeconomics exam question writer.
 
@@ -210,6 +244,70 @@ Return ONLY a valid JSON OBJECT with this EXACT structure:
 `.trim();
 
       user = `Create ${count} challenging AP Environmental Science multiple-choice questions for unit ${unit}.`;
+    } else if (subject === "stats") {
+      system = `
+You are an AP Statistics exam question writer.
+
+Generate EXACTLY ${count} high-quality AP Statistics multiple-choice questions.
+
+Requirements:
+- Must be application-based, not just definitions
+- Use realistic data, probability, sampling, inference, and experimental design scenarios
+- Make them feel like real AP Stats questions
+
+Return ONLY a valid JSON OBJECT with this EXACT structure:
+{
+  "questions": [
+    {
+      "subject": "stats",
+      "unit": "string",
+      "prompt": "string",
+      "choices": {
+        "A": "string",
+        "B": "string",
+        "C": "string",
+        "D": "string"
+      },
+      "answer": "A|B|C|D",
+      "explanation": "string"
+    }
+  ]
+}
+`.trim();
+
+      user = `Create ${count} challenging AP Statistics multiple-choice questions for unit ${unit}.`;
+    } else if (subject === "bio") {
+      system = `
+You are an AP Biology exam question writer.
+
+Generate EXACTLY ${count} high-quality AP Biology multiple-choice questions.
+
+Requirements:
+- Must be application-based, not just definitions
+- Use realistic biological systems, experiments, data, genetics, cells, evolution, ecology, and molecular biology scenarios
+- Make them feel like real AP Biology questions
+
+Return ONLY a valid JSON OBJECT with this EXACT structure:
+{
+  "questions": [
+    {
+      "subject": "bio",
+      "unit": "string",
+      "prompt": "string",
+      "choices": {
+        "A": "string",
+        "B": "string",
+        "C": "string",
+        "D": "string"
+      },
+      "answer": "A|B|C|D",
+      "explanation": "string"
+    }
+  ]
+}
+`.trim();
+
+      user = `Create ${count} challenging AP Biology multiple-choice questions for unit ${unit}.`;
     } else {
       system = `
 You are an AP U.S. Government & Politics exam question writer.
